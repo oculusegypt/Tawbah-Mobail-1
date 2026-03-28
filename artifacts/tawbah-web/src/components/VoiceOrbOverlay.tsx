@@ -70,10 +70,6 @@ export function VoiceOrbOverlay({ onClose }: { onClose: () => void }) {
   }, [stopBarAnim, navigate, onClose]);
 
   const startListening = useCallback(() => {
-    if (isNativeApp()) {
-      finishAndNavigate("");
-      return;
-    }
     setPhase("listening");
     startBarAnim();
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;

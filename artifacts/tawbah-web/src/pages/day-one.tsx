@@ -318,7 +318,8 @@ export default function DayOne() {
       .filter((c) => !(s.kaffarahId && isKaffarahCondition(c)))
       .map((_, i) => `${s.id}_task_${i}`)
   );
-  const allTaskIds = [...universalTaskIds, ...envTaskIds, ...sinConditionIds];
+  const fallbackTaskIds = sins.length === 0 ? ["s0", "s1"] : [];
+  const allTaskIds = [...universalTaskIds, ...envTaskIds, ...sinConditionIds, ...fallbackTaskIds];
   const [checked, setChecked] = useState<Set<string>>(new Set());
 
   const toggle = (id: string) => {
@@ -330,10 +331,10 @@ export default function DayOne() {
     });
   };
 
-  const doneCount = checked.size;
+  const doneCount = allTaskIds.filter(id => checked.has(id)).length;
   const totalCount = allTaskIds.length;
   const progressPct = totalCount > 0 ? (doneCount / totalCount) * 100 : 0;
-  const allDone = doneCount === totalCount;
+  const allDone = totalCount > 0 && doneCount >= totalCount;
 
   const handleComplete = () => {
     if (!allDone) return;

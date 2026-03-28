@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Sparkles, Clock, Search, Heart, X, Play, Pause, Loader2, BookText } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { useSettings } from "@/context/SettingsContext";
-import { setAudioSrc } from "@/lib/native-audio";
 import { getApiBase, isNativeApp } from "@/lib/api-base";
 
 let activeGlobalAudio: { element: HTMLAudioElement; stop: () => void } | null = null;
@@ -753,41 +752,14 @@ function VerseAudioPlayer({ surah, ayah, onOpenChange }: { surah: number; ayah: 
       if (activeGlobalAudio && activeGlobalAudio.element !== audio) activeGlobalAudio.stop();
       activeGlobalAudio = { element: audio, stop: stopSelf };
       try {
-        console.log("[Rajaa] Playing audio:", url);
-        console.log("[Rajaa] isNativeApp:", isNativeApp());
-        if (isNativeApp()) {
-          await setAudioSrc(audio, url);
-        } else {
-          audio.src = url;
-        }
-        console.log("[Rajaa] setAudioSrc completed. audio.src:", audio.src);
-        if (!audio.src || audio.src === '') {
-          console.log("[Rajaa] No src after setAudioSrc, trying direct assignment");
-          audio.src = url;
-        }
+        audio.src = url;
         await audio.play();
-        console.log("[Rajaa] Audio playing successfully");
         setIsPlaying(true);
         onOpenChange?.(true);
       } catch (e) {
-        console.error("[Rajaa] Audio error:", e);
-        console.error("[Rajaa] audio.src at error:", audio.src);
-        console.error("[Rajaa] audio.readyState at error:", audio.readyState);
-        console.error("[Rajaa] audio.networkState at error:", audio.networkState);
-        // Try fallback: direct assignment
-        try {
-          console.log("[Rajaa] Trying fallback: direct src assignment");
-          audio.src = url;
-          await audio.play();
-          console.log("[Rajaa] Fallback successful");
-          setIsPlaying(true);
-          onOpenChange?.(true);
-        } catch (fallbackError) {
-          console.error("[Rajaa] Fallback also failed:", fallbackError);
-          if (activeGlobalAudio?.element === audio) activeGlobalAudio = null;
-          setIsPlaying(false);
-          onOpenChange?.(false);
-        }
+        if (activeGlobalAudio?.element === audio) activeGlobalAudio = null;
+        setIsPlaying(false);
+        onOpenChange?.(false);
       }
     }
   };
@@ -797,12 +769,8 @@ function VerseAudioPlayer({ surah, ayah, onOpenChange }: { surah: number; ayah: 
       <audio
         ref={audioRef}
         preload="none"
-        crossOrigin="anonymous"
         onEnded={stopSelf}
-        onError={(e) => {
-          console.error("[Rajaa] Audio element error:", e);
-          console.error("[Rajaa] audio.error:", audioRef.current?.error);
-          console.error("[Rajaa] audio.src at onError:", audioRef.current?.src);
+        onError={() => {
           setIsPlaying(false);
           if (activeGlobalAudio?.element === audioRef.current) activeGlobalAudio = null;
           onOpenChange?.(false);

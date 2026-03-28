@@ -1407,12 +1407,12 @@ export default function ZakiyPage() {
   }
 
   function startVoiceInput() {
-    if (isNativeApp()) {
-      void startVoiceInputNative();
-      return;
-    }
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) {
+      if (isNativeApp()) {
+        void startVoiceInputNative();
+        return;
+      }
       addBotMessage("متصفحك لا يدعم الإدخال الصوتي — جرّب Chrome أو Edge.");
       return;
     }
