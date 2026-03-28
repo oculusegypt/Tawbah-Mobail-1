@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { getSessionId } from "@/lib/session";
-import { isNativeApp } from "@/lib/api-base";
+import { isNativeApp, getApiBase } from "@/lib/api-base";
 import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "wouter";
 import { getAuthHeader } from "@/lib/auth-client";
@@ -927,7 +927,7 @@ function DayTaskList({
 
   const toggleMutation = useMutation({
     mutationFn: async ({ taskIndex, completed }: { taskIndex: number; completed: boolean }) => {
-      const res = await fetch("/api/journey30/task-toggle", {
+      const res = await fetch(`${getApiBase()}/journey30/task-toggle`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...getAuthHeader() },
         body: JSON.stringify({ dayNumber: day.day, taskIndex, completed }),
@@ -1276,7 +1276,7 @@ export default function Journey30() {
     queryKey: ["journey30", sessionId],
     queryFn: async () => {
       try {
-        const res = await fetchWithTimeout("/api/journey30", {
+        const res = await fetchWithTimeout(`${getApiBase()}/journey30`, {
           headers: {
             ...getAuthHeader(),
           },
@@ -1297,7 +1297,7 @@ export default function Journey30() {
 
   const completeMutation = useMutation({
     mutationFn: async (dayNumber: number) => {
-      const res = await fetch("/api/journey30/complete", {
+      const res = await fetch(`${getApiBase()}/journey30/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...getAuthHeader() },
         body: JSON.stringify({ dayNumber }),

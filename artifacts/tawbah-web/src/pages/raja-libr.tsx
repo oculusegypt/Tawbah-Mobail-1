@@ -155,8 +155,13 @@ function TTSPlayer({ payload }: { payload: AudioPayload }) {
       });
       if (!res.ok) throw new Error(`tts_failed_${res.status}`);
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      setAudioUrl(url);
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      setAudioUrl(dataUrl);
       setStatus("ready");
     } catch {
       setStatus("error");

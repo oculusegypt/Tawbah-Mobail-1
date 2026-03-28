@@ -1419,7 +1419,7 @@ export default function ZakiyPage() {
 
     const recognition: SpeechRecognition = new SR();
     recognitionRef.current = recognition;
-    recognition.lang = "ar-SA";
+    recognition.lang = "ar-EG";
     recognition.continuous = false;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
