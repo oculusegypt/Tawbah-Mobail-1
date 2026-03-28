@@ -31,6 +31,7 @@ const allowlist = [
   "pg",
   "stripe",
   "uuid",
+  "web-push",
   "ws",
   "xlsx",
   "zod",
@@ -58,8 +59,8 @@ async function buildAll() {
     entryPoints: [path.resolve(__dirname, "src/index.ts")],
     platform: "node",
     bundle: true,
-    format: "cjs",
-    outfile: path.resolve(distDir, "index.cjs"),
+    format: "esm",
+    outfile: path.resolve(distDir, "index.mjs"),
     define: {
       "process.env.NODE_ENV": '"production"',
     },
