@@ -755,14 +755,16 @@ function VerseAudioPlayer({ surah, ayah, onOpenChange }: { surah: number; ayah: 
       try {
         console.log("[Rajaa] Playing audio:", url);
         console.log("[Rajaa] isNativeApp:", isNativeApp());
-        await setAudioSrc(audio, url);
+        if (isNativeApp()) {
+          await setAudioSrc(audio, url);
+        } else {
+          audio.src = url;
+        }
         console.log("[Rajaa] setAudioSrc completed. audio.src:", audio.src);
         if (!audio.src || audio.src === '') {
           console.log("[Rajaa] No src after setAudioSrc, trying direct assignment");
           audio.src = url;
         }
-        audio.load();
-        console.log("[Rajaa] audio.load() completed. readyState:", audio.readyState);
         await audio.play();
         console.log("[Rajaa] Audio playing successfully");
         setIsPlaying(true);
@@ -776,7 +778,6 @@ function VerseAudioPlayer({ surah, ayah, onOpenChange }: { surah: number; ayah: 
         try {
           console.log("[Rajaa] Trying fallback: direct src assignment");
           audio.src = url;
-          audio.load();
           await audio.play();
           console.log("[Rajaa] Fallback successful");
           setIsPlaying(true);
@@ -796,6 +797,7 @@ function VerseAudioPlayer({ surah, ayah, onOpenChange }: { surah: number; ayah: 
       <audio
         ref={audioRef}
         preload="none"
+        crossOrigin="anonymous"
         onEnded={stopSelf}
         onError={(e) => {
           console.error("[Rajaa] Audio element error:", e);

@@ -16,7 +16,7 @@ import { hasFiredToday, markFiredToday, addToInboxApi } from "@/lib/app-notifica
 import { playTakbeer, preloadTakbeer, playAzan, preloadAzan, playDuaPeak, preloadDuaPeak, playAzkarSabah, preloadAzkarSabah, playAzkarMasaa, preloadAzkarMasaa, stopAzkarSabah, stopAzkarMasaa } from "@/lib/takbeer";
 import { calcDuaPower, duaPeakCooledDown, markDuaPeakFired } from "@/lib/dua-power";
 import { isNativeApp, getApiBase } from "@/lib/api-base";
-import { initCapacitorPush, getCapacitorPermission } from "@/lib/capacitor-push";
+import { initCapacitorPush, getCapacitorPermission, requestCapacitorPermission } from "@/lib/capacitor-push";
 
 const API_BASE = getApiBase();
 
@@ -123,11 +123,15 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       void getCapacitorPermission().then((p) => setPermission(p));
       // Register service worker even in native builds so showViaSW works
       registerSW().then(() => {
-        setPermission(getPermission());
+        // IMPORTANT: in native mode do NOT use web Notification.permission,
+        // because it can report denied inside WebView even when OS permission is granted.
         const s = loadSettings();
-        if (s.enabled && getPermission() === "granted") {
-          void subscribeToPush();
-        }
+        void getCapacitorPermission().then((p) => {
+          setPermission(p);
+          if (s.enabled && p === "granted") {
+            void subscribeToPush();
+          }
+        });
       });
     } else {
       registerSW().then(() => {
@@ -341,11 +345,41 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   const enableNotifications = useCallback(async (): Promise<boolean> => {
     if (native) {
+      try {
+        localStorage.removeItem("push_last_error");
+        localStorage.removeItem("push_stage");
+      } catch {}
+      try { localStorage.setItem("push_stage", "native_enable_start"); } catch {}
+      // Force Android permission request from a user gesture (button click)
+      try { localStorage.setItem("push_stage", "requesting_permission"); } catch {}
+      let perm: NotificationPermission = "default";
+      try {
+        perm = await Promise.race([
+          requestCapacitorPermission(),
+          new Promise<NotificationPermission>((resolve) =>
+            setTimeout(() => resolve("default"), 9000),
+          ),
+        ]);
+        if (perm === "default") {
+          try { localStorage.setItem("push_stage", "permission_request_timeout_or_default"); } catch {}
+        }
+      } catch {
+        try { localStorage.setItem("push_stage", "permission_request_failed"); } catch {}
+        perm = "default";
+      }
+      setPermission(perm);
+      try { localStorage.setItem("push_stage", `permission_${perm}`); } catch {}
+      // Some Android builds (and Android < 13) can return "default" while notifications still work.
+      // Only treat explicit "denied" as a blocker.
+      if (perm === "denied") return false;
+
       let lastErr = "";
+      try { localStorage.setItem("push_stage", "init_push_start"); } catch {}
       console.log("[Notifications] enableNotifications: starting native push init");
       const ok = await initCapacitorPush({
         onToken: (token) => {
           console.log("[Notifications] enableNotifications: token received", token ? "(redacted)" : "(empty)");
+          try { localStorage.setItem("push_stage", "token_received"); } catch {}
         },
         onNotification: (title, body) => {
           console.log("[Notifications] enableNotifications: notification received", title, body);
@@ -354,6 +388,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         onError: (e) => { 
           lastErr = e; 
           console.error("[Notifications] enableNotifications error:", e); 
+          try { localStorage.setItem("push_last_error", e || "unknown_error"); } catch {}
         },
       });
       console.log("[Notifications] enableNotifications: initCapacitorPush returned", ok);
@@ -364,6 +399,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         } catch {}
         return false;
       }
+      // Mark as granted inside the app so settings UI unlocks once native push is working.
       setPermission("granted");
       updateSettings({ enabled: true });
       return true;

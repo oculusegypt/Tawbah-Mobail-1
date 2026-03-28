@@ -1,7 +1,7 @@
 import { Router } from "express";
 import webpush from "web-push";
 import { db } from "@workspace/db";
-import { pushSubscriptionsTable, pushJobsTable } from "@workspace/db/schema";
+import { pushSubscriptionsTable, pushJobsTable, pushFcmTokensTable } from "@workspace/db/schema";
 import { eq, lte, and } from "drizzle-orm";
 
 const router = Router();
@@ -41,6 +41,27 @@ router.post("/subscribe", async (req, res) => {
       set: { endpoint, p256dh, auth, updatedAt: new Date() },
     });
   res.json({ ok: true });
+});
+
+// POST /push/fcm-token
+router.post("/fcm-token", async (req, res) => {
+  const { sessionId, token, platform } = req.body as {
+    sessionId?: string;
+    token?: string;
+    platform?: string;
+  };
+  if (!sessionId || !token) {
+    return res.status(400).json({ error: "Missing sessionId or token" });
+  }
+  const plat = platform || "android";
+  await db
+    .insert(pushFcmTokensTable)
+    .values({ sessionId, token, platform: plat })
+    .onConflictDoUpdate({
+      target: [pushFcmTokensTable.sessionId, pushFcmTokensTable.platform],
+      set: { token, updatedAt: new Date() },
+    });
+  return res.json({ ok: true });
 });
 
 // POST /push/schedule

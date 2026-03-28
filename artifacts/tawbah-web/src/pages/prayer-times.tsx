@@ -3,6 +3,8 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, BellOff, MapPin, RefreshCw, Moon, Sun, Sunset, Sunrise } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { useNotifications } from "@/context/NotificationsContext";
+import { isNativeApp } from "@/lib/api-base";
 
 interface PrayerTimings {
   Fajr: string;
@@ -181,6 +183,8 @@ function PrayerSkyHeader() {
 
 export default function PrayerTimes() {
   const [, setLocation] = useLocation();
+  const { permission, enableNotifications: enableAppNotifications, updateSettings, settings } = useNotifications();
+  const native = isNativeApp();
   const [timings, setTimings] = useState<PrayerTimings | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -188,17 +192,20 @@ export default function PrayerTimes() {
   const [country, setCountry] = useState(() => localStorage.getItem("prayerCountry") || "");
   const [cityInput, setCityInput] = useState(city);
   const [countryInput, setCountryInput] = useState(country);
-  const [notifEnabled, setNotifEnabled] = useState(false);
-  const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
+  const [notifEnabled, setNotifEnabled] = useState(() => settings.enabled);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>(() => native ? permission : "default");
   const [, setTick] = useState(0);
 
   useEffect(() => {
-    if ("Notification" in window) {
+    if (native) {
+      setNotifPermission(permission);
+      setNotifEnabled(settings.enabled);
+    } else if ("Notification" in window) {
       setNotifPermission(Notification.permission);
     }
     const timer = setInterval(() => setTick(t => t + 1), 60000);
     return () => clearInterval(timer);
-  }, []);
+  }, [native, permission, settings.enabled]);
 
   useEffect(() => {
     if (city && country) fetchTimes(city, country);
@@ -283,37 +290,18 @@ export default function PrayerTimes() {
     );
   };
 
-  const enableNotifications = async () => {
-    if (!("Notification" in window)) {
-      setError("المتصفح لا يدعم الإشعارات");
+  const enablePrayerReminders = async () => {
+    setError("");
+    const ok = await enableAppNotifications();
+    if (!ok) {
+      let details = "";
+      try { details = localStorage.getItem("push_last_error") || ""; } catch {}
+      setError(details ? `فشل تفعيل الإشعارات: ${details}` : "فشل تفعيل الإشعارات");
       return;
     }
-    const permission = await Notification.requestPermission();
-    setNotifPermission(permission);
-    if (permission === "granted") {
-      setNotifEnabled(true);
-      scheduleNotifications();
-      new Notification("دليل التوبة النصوح 🌙", {
-        body: "سيتم تذكيرك بمواقيت الصلاة إن شاء الله",
-      });
-    }
-  };
-
-  const scheduleNotifications = () => {
-    if (!timings) return;
-    PRAYERS.forEach((p) => {
-      const mins = getMinutesUntil(timings[p.key]);
-      const reminderMins = mins - 10;
-      if (reminderMins > 0) {
-        setTimeout(() => {
-          if (Notification.permission === "granted") {
-            new Notification(`حان وقت ${p.nameAr} 🕌`, {
-              body: p.dhikrBefore,
-            });
-          }
-        }, reminderMins * 60 * 1000);
-      }
-    });
+    updateSettings({ enabled: true });
+    setNotifEnabled(true);
+    setNotifPermission("granted");
   };
 
   const nextPrayerKey = timings ? getNextPrayer(timings) : null;
@@ -490,13 +478,14 @@ export default function PrayerTimes() {
               </div>
             ) : (
               <button
-                onClick={enableNotifications}
+                onClick={enablePrayerReminders}
                 className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md"
               >
                 <Bell size={16} />
                 فعّل التذكيرات قبل كل صلاة
               </button>
             )}
+            {error && <p className="text-xs text-destructive text-center mt-2">{error}</p>}
           </div>
 
           <div className="text-center">

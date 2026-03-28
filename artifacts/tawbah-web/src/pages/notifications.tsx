@@ -163,13 +163,42 @@ export default function NotificationsPage() {
   const [adhkarPreview, setAdhkarPreview] = useState<"morning" | "evening" | null>(null);
   const native = isNativeApp();
 
+  const [nativeDebug, setNativeDebug] = useState<{ token: boolean; stage: string; lastError: string }>(() => {
+    let token = false;
+    let stage = "";
+    let lastError = "";
+    try {
+      token = !!localStorage.getItem("fcm_token");
+      stage = localStorage.getItem("push_stage") || "";
+      lastError = localStorage.getItem("push_last_error") || "";
+    } catch {}
+    return { token, stage, lastError };
+  });
+
   const handleEnable = async () => {
     console.log("[NotificationsPage] handleEnable clicked");
+    if (native) {
+      try {
+        localStorage.removeItem("push_last_error");
+        localStorage.removeItem("push_stage");
+      } catch {}
+    }
     setEnabling(true);
     setPushError(null);
     try {
       console.log("[NotificationsPage] Calling enableNotifications...");
-      const result = await enableNotifications();
+      const result = await Promise.race([
+        enableNotifications(),
+        new Promise<boolean>((resolve) =>
+          setTimeout(() => {
+            try {
+              localStorage.setItem("push_stage", "enable_timeout");
+              localStorage.setItem("push_last_error", "enable_timeout");
+            } catch {}
+            resolve(false);
+          }, 25000),
+        ),
+      ]);
       console.log("[NotificationsPage] enableNotifications returned:", result);
       if (!result && native) {
         let details = "";
@@ -184,6 +213,16 @@ export default function NotificationsPage() {
     } catch (e: unknown) {
       console.error("[NotificationsPage] Exception in handleEnable:", e);
       setPushError(`خطأ: ${e instanceof Error ? e.message : 'غير معروف'}`);
+    }
+
+    if (native) {
+      try {
+        setNativeDebug({
+          token: !!localStorage.getItem("fcm_token"),
+          stage: localStorage.getItem("push_stage") || "",
+          lastError: localStorage.getItem("push_last_error") || "",
+        });
+      } catch {}
     }
     setEnabling(false);
   };
@@ -312,6 +351,27 @@ export default function NotificationsPage() {
                 </button>
                 {pushError && (
                   <p className="text-red-500 text-sm mt-2 text-center">{pushError}</p>
+                )}
+
+                {native && (
+                  <div className="mt-3 bg-background/60 border border-border/50 rounded-xl p-3 text-[11px] text-muted-foreground">
+                    <div className="flex items-center justify-between gap-2">
+                      <span>حالة الإذن داخل التطبيق:</span>
+                      <span className="font-bold text-foreground">{permission}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                      <span>توكن FCM محفوظ:</span>
+                      <span className="font-bold text-foreground">{nativeDebug.token ? "نعم" : "لا"}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                      <span>المرحلة:</span>
+                      <span className="font-bold text-foreground">{nativeDebug.stage || "-"}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                      <span>آخر خطأ:</span>
+                      <span className="font-bold text-foreground">{nativeDebug.lastError || "-"}</span>
+                    </div>
+                  </div>
                 )}
               </div>
             </motion.div>

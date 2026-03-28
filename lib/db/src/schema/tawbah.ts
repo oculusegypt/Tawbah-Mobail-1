@@ -1,4 +1,4 @@
-import { pgTable, text, serial, boolean, integer, timestamp, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, boolean, integer, timestamp, date, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -231,3 +231,20 @@ export const pushJobsTable = pgTable("push_jobs", {
   sent: boolean("sent").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const pushFcmTokensTable = pgTable(
+  "push_fcm_tokens",
+  {
+    id: serial("id").primaryKey(),
+    sessionId: text("session_id").notNull(),
+    platform: text("platform").notNull().default("android"),
+    token: text("token").notNull(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (t) => ({
+    sessionPlatformUnique: uniqueIndex("push_fcm_tokens_session_platform_unique").on(
+      t.sessionId,
+      t.platform,
+    ),
+  }),
+);
