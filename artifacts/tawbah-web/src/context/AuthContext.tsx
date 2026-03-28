@@ -31,6 +31,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setAuthToken(session.access_token);
       setUser({ id: session.user.id, email: session.user.email ?? "" });
+      try {
+        localStorage.setItem("tawbah_session", `user_${session.user.id}`);
+        localStorage.setItem("tawbah_user_id", session.user.id);
+      } catch {}
       setIsLoading(false);
     };
 
@@ -45,6 +49,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setAuthToken(session.access_token);
       setUser({ id: session.user.id, email: session.user.email ?? "" });
+      try {
+        localStorage.setItem("tawbah_session", `user_${session.user.id}`);
+        localStorage.setItem("tawbah_user_id", session.user.id);
+      } catch {}
       setIsLoading(false);
     });
 
@@ -53,11 +61,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const linkSessionToUser = (userId: string) => {
+    try {
+      const prev = localStorage.getItem("tawbah_session");
+      if (!prev || prev === "guest" || !prev.startsWith("user_")) {
+        localStorage.setItem("tawbah_session", `user_${userId}`);
+      }
+      localStorage.setItem("tawbah_user_id", userId);
+    } catch {}
+  };
+
   const login = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !data.session) throw new Error("login_failed");
     setAuthToken(data.session.access_token);
     setUser({ id: data.session.user.id, email: data.session.user.email ?? email });
+    linkSessionToUser(data.session.user.id);
   };
 
   const register = async (email: string, password: string) => {
@@ -67,8 +86,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (session) {
       setAuthToken(session.access_token);
       setUser({ id: session.user.id, email: session.user.email ?? email });
+      linkSessionToUser(session.user.id);
     } else {
-      // Email confirmation might be enabled; user will need to confirm then login.
       clearAuthToken();
       setUser(null);
     }
@@ -77,6 +96,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     supabase.auth.signOut();
     clearAuthToken();
+    try {
+      localStorage.removeItem("tawbah_user_id");
+      const guestId = `guest_${Date.now()}`;
+      localStorage.setItem("tawbah_session", guestId);
+    } catch {}
     setUser(null);
   };
 

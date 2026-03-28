@@ -17,6 +17,7 @@ import { playTakbeer, preloadTakbeer, playAzan, preloadAzan, playDuaPeak, preloa
 import { calcDuaPower, duaPeakCooledDown, markDuaPeakFired } from "@/lib/dua-power";
 import { isNativeApp, getApiBase } from "@/lib/api-base";
 import { initCapacitorPush, getCapacitorPermission, requestCapacitorPermission } from "@/lib/capacitor-push";
+import { createNotificationChannels, showLocalNotifNow, requestLocalNotifPermission } from "@/lib/native-notifications";
 
 const API_BASE = getApiBase();
 
@@ -107,6 +108,15 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!supported) return;
     if (native) {
+      // Create notification channels (required for Android 8+)
+      void createNotificationChannels();
+      // Request local notification permission and cache it
+      void requestLocalNotifPermission().then((granted) => {
+        if (granted) {
+          try { localStorage.setItem("native_notif_permission", "granted"); } catch {}
+          setPermission("granted");
+        }
+      });
       // Capacitor native: initialize FCM push notifications
       const s = loadSettings();
       if (s.enabled) {
@@ -116,7 +126,10 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             void addToInboxApi({ type: "reminder", title, body, icon: "bell", color: "#4A90B8" });
           },
         }).then((ok) => {
-          if (ok) setPermission("granted");
+          if (ok) {
+            setPermission("granted");
+            try { localStorage.setItem("native_notif_permission", "granted"); } catch {}
+          }
         });
       }
       // Update permission state
@@ -219,7 +232,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   }, [supported]);
 
   // ── In-app polling every 30s — works on ALL pages while app is open ───────────
-  // Uses SW showNotification() which works even in background tabs
   useEffect(() => {
     if (!settings.enabled || permission !== "granted" || !supported) return;
 
@@ -232,13 +244,21 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       for (const n of notifs) {
         const diff = n.fireAt - now;
         if (diff >= -WINDOW_MS && diff <= WINDOW_MS) {
-          // Key includes the exact minute so changing the time allows re-firing
           const fireKey = `${n.tag}_${new Date(n.fireAt).toISOString().slice(0, 16)}`;
           if (!hasFiredToday(fireKey)) {
             markFiredToday(fireKey);
-            // Show via SW — works from ANY page, background tab, or minimized window
-            await showViaSW({ title: n.title, body: n.body, tag: n.tag, url: n.url ?? "/" });
-            // Also add to in-app inbox
+            if (native) {
+              // Native: use LocalNotifications for real status-bar notification with sound
+              let channelId = "reminder";
+              let sound = "takbeer";
+              if (n.tag.startsWith("prayer-")) { channelId = "prayer"; sound = "takbeer"; }
+              else if (n.tag === "morning-adhkar") { channelId = "adhkar"; sound = "azkar_sabah"; }
+              else if (n.tag === "evening-adhkar") { channelId = "adhkar"; sound = "azkar_masaa"; }
+              await showLocalNotifNow({ title: n.title, body: n.body, tag: n.tag, channelId, sound, url: n.url ?? "/" });
+            } else {
+              // Web: show via Service Worker
+              await showViaSW({ title: n.title, body: n.body, tag: n.tag, url: n.url ?? "/" });
+            }
             void addToInboxApi({ type: "reminder", title: n.title, body: n.body, icon: "bell", color: "#4A90B8" });
           }
         }
@@ -248,7 +268,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     checkDue();
     const interval = setInterval(checkDue, 30_000);
     return () => clearInterval(interval);
-  }, [settings, permission, supported]);
+  }, [settings, permission, supported, native]);
 
   // ── Adhkar polling — shows the modal at configured morning/evening time ────────
   useEffect(() => {
@@ -401,6 +421,13 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       }
       // Mark as granted inside the app so settings UI unlocks once native push is working.
       setPermission("granted");
+      try { localStorage.setItem("native_notif_permission", "granted"); } catch {}
+      // Also ensure LocalNotifications permission for scheduled/timed notifications
+      void requestLocalNotifPermission().then((localOk) => {
+        if (localOk) {
+          try { localStorage.setItem("native_notif_permission", "granted"); } catch {}
+        }
+      });
       updateSettings({ enabled: true });
       return true;
     }

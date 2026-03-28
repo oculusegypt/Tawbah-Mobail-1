@@ -1,11 +1,23 @@
 import { isNativeApp } from "@/lib/api-base";
 
+type NotificationChannel = {
+  id: string;
+  name: string;
+  description?: string;
+  importance?: number;
+  sound?: string;
+  vibration?: boolean;
+  lights?: boolean;
+};
+
 type LocalNotificationsPlugin = {
   requestPermissions: () => Promise<{ display: string }>;
   checkPermissions: () => Promise<{ display: string }>;
   schedule: (options: { notifications: LocalNotification[] }) => Promise<{ notifications: Array<{ id: number }> }>;
   cancel: (options: { notifications: Array<{ id: number }> }) => Promise<void>;
   getPending: () => Promise<{ notifications: Array<{ id: number }> }>;
+  createChannel?: (channel: NotificationChannel) => Promise<void>;
+  listChannels?: () => Promise<{ channels: NotificationChannel[] }>;
 };
 
 interface LocalNotification {
@@ -21,6 +33,7 @@ interface LocalNotification {
 }
 
 let _plugin: LocalNotificationsPlugin | null = null;
+let _channelsCreated = false;
 
 async function getPlugin(): Promise<LocalNotificationsPlugin | null> {
   if (!isNativeApp()) return null;
@@ -45,6 +58,49 @@ async function getPlugin(): Promise<LocalNotificationsPlugin | null> {
   return null;
 }
 
+export async function createNotificationChannels(): Promise<void> {
+  if (_channelsCreated) return;
+  const plugin = await getPlugin();
+  if (!plugin || typeof plugin.createChannel !== "function") return;
+
+  const channels: NotificationChannel[] = [
+    {
+      id: "prayer",
+      name: "أوقات الصلاة",
+      description: "إشعارات أوقات الصلاة",
+      importance: 5,
+      sound: "takbeer",
+      vibration: true,
+      lights: true,
+    },
+    {
+      id: "adhkar",
+      name: "الأذكار والأوراد",
+      description: "إشعارات أذكار الصباح والمساء",
+      importance: 4,
+      sound: "azkar_sabah",
+      vibration: true,
+      lights: true,
+    },
+    {
+      id: "reminder",
+      name: "التذكيرات اليومية",
+      description: "التذكيرات والتنبيهات اليومية",
+      importance: 4,
+      sound: "takbeer",
+      vibration: true,
+      lights: true,
+    },
+  ];
+
+  for (const ch of channels) {
+    try {
+      await plugin.createChannel(ch);
+    } catch {}
+  }
+  _channelsCreated = true;
+}
+
 export async function requestLocalNotifPermission(): Promise<boolean> {
   const plugin = await getPlugin();
   if (!plugin) return false;
@@ -64,13 +120,23 @@ export interface ScheduledItem {
   body: string;
   fireAt: Date;
   url?: string;
+  channelId?: string;
+  sound?: string;
 }
 
 let _scheduledIds: number[] = [];
 
+function getSoundForChannel(channelId?: string): string {
+  if (channelId === "prayer") return "takbeer";
+  if (channelId === "adhkar") return "azkar_sabah";
+  return "takbeer";
+}
+
 export async function scheduleLocalNotifications(items: ScheduledItem[]): Promise<void> {
   const plugin = await getPlugin();
   if (!plugin) return;
+
+  await createNotificationChannels();
 
   try {
     if (_scheduledIds.length > 0) {
@@ -89,19 +155,24 @@ export async function scheduleLocalNotifications(items: ScheduledItem[]): Promis
   const future = items.filter(i => i.fireAt.getTime() > now);
   if (future.length === 0) return;
 
-  const notifications: LocalNotification[] = future.map(item => ({
-    id: item.id,
-    title: item.title,
-    body: item.body,
-    schedule: {
-      at: item.fireAt,
-      allowWhileIdle: true,
-    },
-    extra: { url: item.url ?? "/" },
-    channelId: "prayer",
-    smallIcon: "ic_stat_icon_config_sample",
-    iconColor: "#2d7a4f",
-  }));
+  const notifications: LocalNotification[] = future.map(item => {
+    const ch = item.channelId ?? "reminder";
+    const snd = item.sound ?? getSoundForChannel(ch);
+    return {
+      id: item.id,
+      title: item.title,
+      body: item.body,
+      schedule: {
+        at: item.fireAt,
+        allowWhileIdle: true,
+      },
+      extra: { url: item.url ?? "/" },
+      channelId: ch,
+      sound: snd,
+      smallIcon: "ic_stat_icon_config_sample",
+      iconColor: "#2d7a4f",
+    };
+  });
 
   try {
     const result = await plugin.schedule({ notifications });
@@ -109,6 +180,47 @@ export async function scheduleLocalNotifications(items: ScheduledItem[]): Promis
     console.log("[LocalNotif] Scheduled", _scheduledIds.length, "notifications");
   } catch (e) {
     console.error("[LocalNotif] Schedule failed:", e);
+  }
+}
+
+let _nowId = 900000;
+
+export async function showLocalNotifNow(params: {
+  title: string;
+  body: string;
+  tag: string;
+  channelId?: string;
+  sound?: string;
+  url?: string;
+}): Promise<void> {
+  const plugin = await getPlugin();
+  if (!plugin) return;
+
+  await createNotificationChannels();
+
+  const ch = params.channelId ?? "reminder";
+  const snd = params.sound ?? getSoundForChannel(ch);
+
+  const fireAt = new Date(Date.now() + 2000);
+  _nowId = (_nowId % 999999) + 1;
+
+  const notification: LocalNotification = {
+    id: _nowId,
+    title: params.title,
+    body: params.body,
+    schedule: { at: fireAt, allowWhileIdle: true },
+    extra: { url: params.url ?? "/" },
+    channelId: ch,
+    sound: snd,
+    smallIcon: "ic_stat_icon_config_sample",
+    iconColor: "#2d7a4f",
+  };
+
+  try {
+    await plugin.schedule({ notifications: [notification] });
+    console.log("[LocalNotif] showLocalNotifNow scheduled id", _nowId);
+  } catch (e) {
+    console.error("[LocalNotif] showLocalNotifNow failed:", e);
   }
 }
 

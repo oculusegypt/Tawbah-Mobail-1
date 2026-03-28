@@ -564,18 +564,26 @@ export async function scheduleAll(settings: NotificationSettings): Promise<void>
   const notifs = await buildScheduledNotifications(settings);
 
   if (isNativeApp()) {
-    const granted = getPermission();
-    if (granted !== "granted") {
-      const result = await requestPermission();
-      if (result !== "granted") return;
+    // For native: request LocalNotifications permission (separate from FCM push permission)
+    const localGranted = await requestLocalNotifPermission();
+    if (localGranted) {
+      try { localStorage.setItem("native_notif_permission", "granted"); } catch {}
     }
-    const items: ScheduledItem[] = notifs.map((n, i) => ({
-      id: hashTag(n.tag) + i,
-      title: n.title,
-      body: n.body,
-      fireAt: new Date(n.fireAt),
-      url: n.url,
-    }));
+    const items: ScheduledItem[] = notifs.map((n, i) => {
+      let channelId = "reminder";
+      let sound = "takbeer";
+      if (n.tag.startsWith("prayer-")) { channelId = "prayer"; sound = "takbeer"; }
+      else if (n.tag === "morning-adhkar" || n.tag === "evening-adhkar") { channelId = "adhkar"; sound = n.tag === "morning-adhkar" ? "azkar_sabah" : "azkar_masaa"; }
+      return {
+        id: hashTag(n.tag) + i,
+        title: n.title,
+        body: n.body,
+        fireAt: new Date(n.fireAt),
+        url: n.url,
+        channelId,
+        sound,
+      };
+    });
     await scheduleLocalNotifications(items);
     void scheduleServerPush(notifs);
     return;
