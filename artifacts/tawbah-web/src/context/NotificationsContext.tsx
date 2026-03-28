@@ -121,6 +121,14 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       }
       // Update permission state
       void getCapacitorPermission().then((p) => setPermission(p));
+      // Register service worker even in native builds so showViaSW works
+      registerSW().then(() => {
+        setPermission(getPermission());
+        const s = loadSettings();
+        if (s.enabled && getPermission() === "granted") {
+          void subscribeToPush();
+        }
+      });
     } else {
       registerSW().then(() => {
         setPermission(getPermission());
