@@ -1,7 +1,11 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import "./design-system/index.css";
+import { initTheme } from "./core/theme";
 import { isNativeApp, getApiBase } from "./lib/api-base";
+
+initTheme();
 
 if (isNativeApp()) {
   const apiBase = getApiBase();

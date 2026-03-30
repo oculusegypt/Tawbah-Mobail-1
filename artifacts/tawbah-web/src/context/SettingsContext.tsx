@@ -146,9 +146,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === "dark") root.classList.add("dark");
-    else root.classList.remove("dark");
+    if (theme === "dark") {
+      root.classList.add("dark");
+      root.setAttribute("data-theme", "dark");
+    } else {
+      root.classList.remove("dark");
+      root.removeAttribute("data-theme");
+    }
     localStorage.setItem("tawbah_theme", theme);
+    localStorage.setItem("tawbah-theme", theme);
   }, [theme]);
 
   useEffect(() => {

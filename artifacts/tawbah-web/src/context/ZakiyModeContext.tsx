@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useLocation } from "wouter";
 import { getSessionId } from "@/lib/session";
+import { setZakiyState, mapDecisionToZakiyState } from "@/core/theme";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -159,6 +160,10 @@ export function ZakiyModeProvider({ children }: { children: ReactNode }) {
       // Ensure target is safe
       data.action.target = safeRoute(data.action.target);
       setDecision(data);
+
+      // Apply Zakiy visual state to the document
+      const zakiyVisualState = mapDecisionToZakiyState(data.decisionType);
+      setZakiyState(zakiyVisualState);
     } catch (err) {
       console.error("[ZakiyMode] fetchDecision error:", err);
       setError("حصل خطأ بسيط… جرّب تاني");

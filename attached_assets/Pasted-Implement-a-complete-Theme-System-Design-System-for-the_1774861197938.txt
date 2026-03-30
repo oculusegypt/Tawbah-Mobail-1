@@ -1,0 +1,273 @@
+Implement a complete Theme System + Design System for the project WITHOUT breaking existing UI.
+
+========================
+CORE RULE
+=========
+
+* Do NOT break existing pages or layouts
+* Do NOT rewrite large files (especially home.tsx)
+* Apply changes gradually
+* This is an enhancement layer, not a rewrite
+
+========================
+GOAL
+====
+
+* Centralize all styles
+* Support Light + Dark theme
+* Add Zakiy state-based UI (emergency, repentance, growth)
+* Build a scalable Design System (tokens + components)
+
+========================
+
+1. CREATE STRUCTURE
+   ========================
+
+Create:
+
+src/design-system/
+├── tokens/
+│     ├── colors.css
+│     ├── spacing.css
+│     ├── typography.css
+│     ├── shadows.css
+│     └── radius.css
+│
+├── base/
+│     ├── reset.css
+│     └── global.css
+│
+├── components/
+│     ├── button.css
+│     ├── card.css
+│     ├── input.css
+│     └── layout.css
+│
+└── index.css
+
+========================
+2. THEME SYSTEM (CRITICAL)
+==========================
+
+In tokens/colors.css:
+
+Define:
+
+:root (light theme)
+[data-theme="dark"] (dark theme)
+
+Variables:
+
+--bg
+--surface
+--card
+--text
+--text-muted
+--primary
+--primary-soft
+--border
+--danger
+--warning
+
+Also define Zakiy states:
+
+[data-zakiy-state="emergency"]
+[data-zakiy-state="repentance"]
+[data-zakiy-state="growth"]
+
+These must override colors dynamically.
+
+========================
+3. TYPOGRAPHY SYSTEM
+====================
+
+In typography.css:
+
+* font family
+* font sizes (xs → xl)
+* font weights
+
+Apply globally in body.
+
+========================
+4. SPACING SYSTEM
+=================
+
+In spacing.css:
+
+Define consistent spacing scale:
+
+--space-1 → --space-6
+
+Use across all components.
+
+========================
+5. RADIUS + SHADOWS
+===================
+
+Define:
+
+* border radius scale
+* shadow levels
+
+========================
+6. BASE STYLES
+==============
+
+reset.css:
+
+* normalize default browser styles
+
+global.css:
+
+* apply background = var(--bg)
+* apply text color = var(--text)
+
+========================
+7. COMPONENT SYSTEM
+===================
+
+Create reusable classes:
+
+.button.css:
+
+* .btn
+* .btn-primary
+* .btn-secondary
+
+.card.css:
+
+* .card
+
+.input.css:
+
+* .input
+
+layout.css:
+
+* .container
+* .flex
+* .grid
+
+All must use CSS variables only.
+
+========================
+8. GLOBAL IMPORT
+================
+
+In main entry (index.tsx or App.tsx):
+
+import 'src/design-system/index.css';
+
+========================
+9. THEME CONTROLLER
+===================
+
+Create:
+
+src/core/theme.ts
+
+Functions:
+
+setTheme('light' | 'dark')
+setZakiyState('emergency' | 'repentance' | 'growth')
+
+Use:
+
+document.documentElement.setAttribute()
+
+Persist theme in localStorage.
+
+========================
+10. CONNECT WITH ZAKIY
+======================
+
+When receiving decision:
+
+Map decisionType → zakiy-state
+
+Example:
+
+if decisionType === 'emergency':
+setZakiyState('emergency')
+
+========================
+11. MIGRATION STRATEGY (IMPORTANT)
+==================================
+
+DO NOT refactor entire project.
+
+Migrate gradually:
+
+Step 1:
+
+* Zakiy components (Panel, Dashboard, Overlay)
+
+Step 2:
+
+* Home page
+
+Step 3:
+
+* Shared UI elements (buttons, cards)
+
+Replace:
+
+* hardcoded colors
+* inline styles
+
+WITH:
+
+CSS variables
+
+========================
+12. REMOVE BAD PATTERNS
+=======================
+
+Avoid:
+
+* inline styles (style={{}})
+* hardcoded colors (#fff, #000)
+* inconsistent spacing
+
+Do partial cleanup only (safe areas first).
+
+========================
+13. DARK MODE TOGGLE
+====================
+
+Add simple toggle:
+
+* default = light
+* stored in localStorage
+
+========================
+14. ZAKIY VISUAL FEEDBACK
+=========================
+
+UI must reflect Zakiy state:
+
+* emergency → red tone
+* repentance → calm blue tone
+* growth → green tone
+
+Use CSS overrides via [data-zakiy-state]
+
+========================
+15. SAFETY RULES
+================
+
+If any UI breaks:
+
+* fallback to original styles
+* do NOT block rendering
+
+========================
+FINAL GOAL
+==========
+
+* Unified Theme System
+* Scalable Design System
+* Dynamic UI reacting to user state
+* Clean, maintainable styling
+* No regression in existing features
