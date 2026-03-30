@@ -1,0 +1,982 @@
+You are working on an AI-driven Islamic application called "Tawbah".
+
+IMPORTANT ARCHITECTURE RULE:
+Do NOT treat pages as independent features.
+All existing routes are capabilities that must be orchestrated by a central AI system called "Zakiy".
+
+Your task is to refactor and extend the system into an AI-Orchestrated Architecture.
+
+## Core Concept
+
+Zakiy is the central decision engine that:
+
+* Understands user state
+* Detects risk
+* Assigns tasks
+* Redirects user to the correct capability (route)
+
+## Step 1: Create Core AI Service
+
+Create a service:
+`/src/core/zakiy-engine.ts`
+
+It should:
+
+* Accept user context
+* Return:
+
+  * message
+  * action (route redirect)
+  * task
+
+## Step 2: Create User State System
+
+Create:
+`/src/core/user-state.ts`
+
+State includes:
+
+* level
+* streak
+* riskScore
+* lastRelapse
+* dangerTimes
+
+## Step 3: Create Risk Engine
+
+Move logic from:
+
+* danger-times
+* sos
+
+Into:
+`/src/core/risk-engine.ts`
+
+Expose:
+
+* analyzeRisk()
+* shouldTriggerSOS()
+
+## Step 4: Create Task Engine
+
+Merge:
+
+* hadi-tasks
+* habits
+* plan
+
+Into:
+`/src/core/task-engine.ts`
+
+## Step 5: Refactor Home Page
+
+Home should NOT show many options.
+
+It should:
+
+* Show current state
+* Show ONE primary button:
+  "Start Now"
+
+On click:
+→ call Zakiy
+→ follow returned action
+
+## Step 6: Create Central API
+
+Create endpoint:
+POST /api/zakiy
+
+Returns:
+{
+message,
+action,
+task
+}
+
+## Step 7: Community Refactor
+
+Merge:
+
+* ameen
+* secret-dua
+* dhikr-rooms
+* challenge
+* map
+
+Into:
+Single module:
+`/community`
+
+## Step 8: Notification System
+
+Convert to event-driven:
+
+* risk spike
+* inactivity
+* prayer time
+
+## FINAL RULE
+
+Zakiy is the ONLY decision maker.
+Pages are just execution tools.
+
+Start with step 1 and implement incrementally.
+
+---
+
+# 🧩 ثانياً: خطة التنفيذ (Tasks step-by-step)
+
+دي أهم جزء فعلي 👇
+
+---
+
+## 🟢 Phase 1: تثبيت الأساس (لازم الأول)
+
+### ✅ Task 1: Zakiy Engine
+
+* ملف: `zakiy-engine.ts`
+* يعمل:
+
+  * يستقبل user state
+  * يرجع decision
+
+👉 ده قلب المشروع
+
+---
+
+### ✅ Task 2: User State
+
+* اعمل store موحد
+* يشتغل مع:
+
+  * localStorage + backend
+
+---
+
+### ✅ Task 3: Risk Engine
+
+* اسحب logic من:
+
+  * `/danger-times`
+  * `/sos`
+
+وحطهم هنا
+
+---
+
+## 🟡 Phase 2: دمج الأنظمة
+
+### ✅ Task 4: Task Engine
+
+ادمج:
+
+* hadi-tasks
+* habits
+* plan
+
+في نظام واحد
+
+---
+
+### ✅ Task 5: Journey Refactor
+
+ادمج:
+
+* journey
+* day-one
+* relapse
+* progress
+
+→ في flow واحد
+
+---
+
+### ✅ Task 6: Community Merge
+
+ادمج:
+
+* ameen
+* secret-dua
+* rooms
+* challenge
+* map
+
+→ صفحة واحدة
+
+---
+
+## 🔴 Phase 3: التحكم الذكي
+
+### ✅ Task 7: Home يتحول لواجهة ذكية
+
+بدل:
+
+* 20 زر
+
+يبقى:
+
+* حالة المستخدم
+* زر:
+  👉 “ابدأ الآن”
+
+---
+
+### ✅ Task 8: SOS Trigger تلقائي
+
+مش user بس يدخل
+
+👉 النظام يفعله لوحده
+
+---
+
+### ✅ Task 9: Notifications Event-based
+
+بدل cron:
+
+* based on:
+
+  * risk
+  * inactivity
+  * time
+
+---
+
+## 🔵 Phase 4: تحسين التجربة
+
+### ✅ Task 10: Dynamic UI
+
+* اللون حسب الحالة
+* واجهة “هادية / تحذيرية”
+
+---
+
+### ✅ Task 11: Audio Mode
+
+* تشغيل تلقائي:
+
+  * قرآن
+  * أذكار
+
+---
+
+# ⚠️ أخطاء شفتها في المشروع لازم تتصلح
+
+## ❌ 1. كل Feature صفحة مستقلة
+
+→ لازم تتحول لأدوات داخل system
+
+---
+
+## ❌ 2. مفيش State مركزي واضح
+
+→ ده هيكسر الذكاء
+
+---
+
+## ❌ 3. زكي مجرد Chat
+
+→ لازم يبقى:
+
+> Decision Engine
+
+---
+
+# 🧠 ثالثاً: ترتيب التنفيذ الصح
+
+ما تعملش كده ❌:
+
+* UI
+* صفحات
+* تصميم
+
+---
+
+اعمل كده ✅:
+
+1. Zakiy Engine
+2. User State
+3. Risk Engine
+4. Task Engine
+5. ربط Home
+
+
+
+وده طلبي من ايجنت ينفذ التعديلات دي فا رد عليا بالخطه دي 
+
+The user wants me to:
+
+Deeply analyze the current project
+Create a file called Tawbah-Ai (likely Tawbah-Ai.md) containing a plan for transforming the app into an AI-orchestrated architecture
+The plan must be realistic, executable, with progress tracking capability so another agent can continue from where I left off
+I must NOT start implementing - just create the plan file
+If I see anything that won't work, I should say so rather than creating a bad plan
+Let me first do a deep analysis of the project structure before creating the plan.
+
+أقوم بتحليل المشروع بعمق أولاً قبل كتابة أي كلمة في الخطة.
+
+Let me dig deeper into the key files to understand the current state of the app.
+
+Let me also look at the context system, the DB schema, and some key pages to understand the current architecture deeply.
+
+Now let me look at the key pages that need to be integrated and the context to understand the state management.
+
+Now I have a very clear picture of the project. Let me analyze what I see:
+
+Current architecture: 40+ pages as standalone routes, no central AI orchestration
+
+Auth: Supabase-based authentication with session management
+
+State: Scattered across localStorage, multiple context providers (SettingsContext, NotificationsContext, AppNotificationsContext, AuthContext)
+
+Zakiy: Currently just a chat page, not a decision engine
+
+Database: PostgreSQL with tables for users, progress, habits, dhikr, kaffarah, journal, zakiy_memory, push notifications
+
+API routes: Separate Express routes for each feature
+
+Home: A massive 3549-line monolithic page with 20+ sections
+
+Now I'm separating what's actually achievable from what might be overambitious. I can definitely build a zakiy-engine.ts service that takes user state and returns decisions, create a unified user-state.ts store from existing database data, and extract the risk logic from the danger-times and SOS pages since those are already self-contained at a few hundred lines each.
+
+The task engine would merge habits, tasks, and plans together—complex but doable. The backend endpoint for the decision engine is straightforward, and consolidating the five community pages into one is manageable. Journey refactoring is feasible though it'll be involved.
+
+Where things get risky is trying to reduce the home page to a single button when it's currently 3549 lines touching everything users see first. Automatic SOS triggering would need a background process or periodic checks, which is possible but requires careful handling. A dynamic UI color system based on state doesn't exist yet and would need a theme infrastructure. Audio features are still being evaluated for complexity.
+
+I'm noticing some critical red flags: journey30.tsx appears to be just a redirect or empty file, the auth system mixes Supabase with session IDs in a way that needs careful state management, and Supabase isn't integrated through Replit's native integrations which could cause issues.
+
+The architecture itself is sound, but I need to figure out if I can actually deliver a 100% executable plan. The "one button home" concept is too aggressive without first understanding whether it's even the right direction.
+
+Now I'm thinking through what a realistic plan looks like: I should map out what already exists, identify what needs building, and create an incremental approach with clear dependencies and progress tracking. The zakiy engine feels like the safest, highest-value change to prioritize, while the community merge carries more risk if the backends diverge.
+
+Drafting a comprehensive plan document with status tracking, dependencies, specific file paths, and realistic scope per phase.
+
+Now I have a thorough understanding of the project. Let me create the plan file Tawbah-Ai.md with a complete, realistic, and executable plan.
+
+Key facts from my analysis:
+
+40+ pages as standalone routes
+
+Home.tsx is 3549 lines - massive
+
+Auth: Supabase + session IDs (hybrid approach)
+
+State: Split between localStorage, multiple Context providers, and DB
+
+Zakiy: Currently just a chat page (/zakiy route)
+
+DB Schema: Has userProgress, habits, dhikr, kaffarah, journal, zakiyMemory, push jobs/subscriptions
+
+API Routes: Separate Express endpoints handling tawbah, zakiy, dhikr rooms, hadi tasks, hero content, push notifications, quran, and auth
+
+Push notifications: Already event-based via the push jobs table
+
+Journey30: Redirects to the journey index page
+
+Supabase: Handles authentication rather than Replit auth
+
+Now I need to create a realistic plan and be honest about what's feasible. The main challenge I'm seeing is that Supabase is the auth provider, which means any refactoring needs to preserve that integration carefully.
+
+Phase 1 is the safe foundation—I'll create the zakiy engine as a backend service, build a unified user state manager on the frontend, extract the risk and danger-time logic into its own module, and add a POST endpoint for zakiy. None of this touches the existing Home component.
+
+Phase 2 moves into integration work, which carries more risk since I'll be connecting these new pieces to the existing system.
+
+Phase 3 is where the bigger changes happen—refactoring Home itself, implementing auto-SOS triggers, and enhancing the notification system.
+
+Phase 4 rounds things out with UI theming and audio improvements.
+
+I need to make sure the plan file tracks progress on each task so I can see what's done and what's still pending.
+
+الآن عندي صورة كاملة. دعني أتحقق من آخر شيء مهم:
+
+Now I have everything I need. Let me write the comprehensive plan file Tawbah-Ai.md. This will be:
+
+A deep, honest analysis of the current state
+A realistic, incremental execution plan with progress tracking
+No hallucination - every task references actual files that exist
+Clear dependency mapping
+Status fields for each task so another agent can pick up from where this one left off
+الآن عندي فهم 100% للمشروع. أكتب الخطة.
+
+The plan file has been created. Let me give the user a clear summary of what I did and what I found.
+
+خلصت. إليك ملخص صريح لما حصل:
+
+حللت المشروع كاملاً وخلصت لـ 4 نتائج مهمة قبل ما أكتب حرف:
+
+home.tsx = 3549 سطر كود شغّال — أي "احذف الـ home واعمل زر واحد" هيكلف أسابيع لإصلاح ما ينكسر. قلت ده بصراحة في الملف.
+
+الزكي موجود كـ chat، لكن المنطق الكامل لـ decision engine غير موجود — ده أهم ما يُبنى أولاً.
+
+نظام Push Notifications موجود فعلاً في المشروع ويعمل. مش هنبني من الصفر.
+
+الـ auth يعتمد على Supabase — أي state system جديد لازم يتعامل معاه بعناية.
+
+ما في الملف Tawbah-Ai.md:
+
+تحليل واقعي للكود الموجود (ملفات حقيقية، أحجام حقيقية)
+11 مهمة موزعة على 4 phases، كل مهمة بملفات محددة وكود واضح
+جدول tracking يتحدّث بعد كل مهمة حتى أي وكيل يكمل من نفس النقطة
+4 أشياء من الخطة الأصلية قلت صراحة إنها لن تُنفَّذ وذكرت السبب
+الملف كخريطة طريق — مش بدأت أنفذ أي شيء. قل لي لما تكون مستعداً.
+
+ودي الخطه
+
+# خطة تحويل تطبيق تَوبة إلى نظام ذكاء اصطناعي مُوَجِّه (AI-Orchestrated)
+
+> **للوكيل اللي هيكمل من هنا:** اقرأ القسم "حالة التقدم" أولاً، بعدين روح على المهمة اللي حالتها `IN_PROGRESS` أو أول `TODO` في الـ Phase الحالي.
+
+---
+
+## حالة التقدم الكلية
+
+| Phase | الاسم | الحالة |
+|-------|-------|--------|
+| Phase 1 | تثبيت الأساس | `TODO` |
+| Phase 2 | دمج الأنظمة | `TODO` |
+| Phase 3 | التحكم الذكي | `TODO` |
+| Phase 4 | تحسين التجربة | `TODO` |
+
+**آخر مهمة منتهية:** لا شيء بعد  
+**آخر تحديث:** بداية الخطة
+
+---
+
+## تحليل الواقع الحالي (بدون تجميل)
+
+### ما يوجد فعلاً في المشروع
+
+**الصفحات (40+ صفحة مستقلة):**
+- كل صفحة تعمل لوحدها بدون وعي بالصفحات الأخرى
+- `home.tsx` = 3549 سطر — أكبر ملف في المشروع
+- `journey30.tsx` = سطر واحد فقط (redirect لـ `journey/index`)
+- `sos.tsx` = 254 سطر، `danger-times.tsx` = 231 سطر
+
+**قاعدة البيانات (PostgreSQL + Drizzle):**
+- `user_progress` — streak، covenantDate، sinCategory، currentPhase
+- `habits` — عادات يومية بالتاريخ
+- `dhikr_count` — عدادات الذكر
+- `kaffarah_steps` — خطوات الكفارة
+- `journal_entries` — يوميات
+- `zakiy_memory` — ذاكرة الزكي (traits، challenges، promises، slips)
+- `push_jobs` — نظام إشعارات موجود بالفعل
+- `hadi_task_groups` + `hadi_task_items` — مهام هادي
+
+**API Routes الموجودة:**
+- `tawbah.ts` — progress، habits، dhikr، kaffarah، journal
+- `zakiy.ts` — chat، memory، anniversary
+- `hadi-tasks.ts` — extract tasks من نص
+- `push.ts` — نظام push notifications
+- `dhikr-rooms.ts` — غرف الذكر الجماعية
+
+**State Management الحالي:**
+- `AuthContext` — Supabase auth + session IDs في localStorage
+- `SettingsContext` — theme، language
+- `NotificationsContext` — dua peak، adhkar modals
+- `useUserProgress()` hook — يجلب progress من API
+- localStorage: `tawbah_session`، `tawbah_user_id`
+
+**نظام Auth:**
+- Supabase (يحتاج `SUPABASE_URL` + `SUPABASE_ANON_KEY`)
+- Session ID: إما `user_<supabase_id>` أو `guest_<timestamp>`
+
+---
+
+## المشاكل الحقيقية (مش رأي — حقائق من الكود)
+
+### المشكلة 1: الزكي مجرد chat
+**الملف:** `artifacts/tawbah-web/src/pages/zakiy.tsx` و `artifacts/api-server/src/routes/zakiy.ts`  
+**الواقع:** الزكي يستقبل رسالة ويرجع رد نصي فقط. لا يوجد `action` أو `redirect`.
+
+### المشكلة 2: لا يوجد User State موحد
+**الواقع:** البيانات موزعة — progress من API، session من localStorage، theme من SettingsContext. لا يوجد ملف واحد يجمعها.
+
+### المشكلة 3: Risk Engine غير موجود
+**الواقع:** منطق الخطر موجود داخل UI مباشرة في `danger-times.tsx` و `sos.tsx`، مش في service منفصلة.
+
+### المشكلة 4: Task Engine غير موجود
+**الواقع:** المهام موزعة في 3 أماكن مختلفة: `habits.tsx`، `hadi-tasks.tsx`، `journey/index` — كل واحدة تعمل لوحدها.
+
+---
+
+## قواعد التنفيذ (لازم تتبعها)
+
+1. **لا تكسر ما يعمل** — كل ملف جديد يُضاف، لا يحل محل القديم فوراً إلا بعد ربطه بالكامل
+2. **ابدأ من الـ backend** — الـ frontend يعتمد على API موجود أولاً
+3. **Tests بسيطة** — بعد كل مهمة تأكد أن الـ workflow شغّال (`curl localhost:8080/api/healthz`)
+4. **لا تعدّل `home.tsx`** إلا في Phase 3 وبعد اكتمال Phases 1 و2
+5. **Database migrations أولاً** — أي جدول جديد يتعمل بـ `drizzle-kit push` قبل الكود
+
+---
+
+## Phase 1: تثبيت الأساس
+
+> **الهدف:** بناء 4 ملفات core لا تكسر أي شيء موجود. المشروع يشتغل قبلها وبعدها بنفس الطريقة.
+
+---
+
+### T1.1 — Zakiy Engine (Backend)
+**الحالة:** `TODO`  
+**يعتمد على:** لا شيء  
+**الملف الجديد:** `artifacts/api-server/src/core/zakiy-engine.ts`
+
+**المهمة:**
+إنشاء service تستقبل user state وترجع decision بدون أي تأثير على الكود الموجود.
+
+```typescript
+// Input
+interface ZakiyContext {
+  sessionId: string;
+  streakDays: number;
+  lastActiveDate: string | null;
+  sinCategory: string;
+  riskScore: number;          // 0-100
+  currentPhase: number;
+  covenantSigned: boolean;
+  lastRelapse: string | null;
+  timeOfDay: 'fajr' | 'morning' | 'afternoon' | 'asr' | 'maghrib' | 'isha' | 'night';
+  inactiveDays: number;       // كم يوم مش فاتح التطبيق
+}
+
+// Output
+interface ZakiyDecision {
+  message: string;            // رسالة عربية للمستخدم
+  action: ZakiyAction;
+  urgency: 'low' | 'medium' | 'high' | 'emergency';
+  task?: {
+    title: string;
+    route: string;
+  };
+}
+
+type ZakiyAction =
+  | { type: 'navigate'; route: string }
+  | { type: 'stay' }
+  | { type: 'sos' }
+  | { type: 'show_message' };
+```
+
+**منطق القرار (rule-based أولاً، AI لاحقاً):**
+- `riskScore >= 80` → action: sos، urgency: emergency
+- `inactiveDays >= 3` → navigate: /relapse، urgency: high
+- `streakDays === 0 && !covenantSigned` → navigate: /covenant، urgency: high
+- `streakDays > 0 && currentPhase === 1` → navigate: /journey، urgency: low
+- default → navigate: /dhikr، urgency: low
+
+**ربط بـ OpenAI:** الـ message دايماً تتولد من GPT-4o باستخدام context. الـ action rule-based فقط.
+
+**تحقق من النجاح:**
+```bash
+curl -X POST localhost:8080/api/zakiy-engine \
+  -H "Content-Type: application/json" \
+  -d '{"sessionId":"test","streakDays":0,"sinCategory":"other","riskScore":30,"currentPhase":1,"covenantSigned":false,"lastRelapse":null,"timeOfDay":"morning","inactiveDays":0}'
+```
+يرجع: `{ message: "...", action: { type: "navigate", route: "/covenant" }, urgency: "high" }`
+
+---
+
+### T1.2 — API Endpoint: POST /api/zakiy/decide
+**الحالة:** `TODO`  
+**يعتمد على:** T1.1  
+**الملف المعدَّل:** `artifacts/api-server/src/routes/zakiy.ts` (إضافة route جديد، لا حذف)
+
+**المهمة:**  
+إضافة endpoint جديد `POST /api/zakiy/decide` يجمع user state من DB ويستدعي `zakiy-engine.ts`.
+
+```
+POST /api/zakiy/decide
+Body: { sessionId: string }
+
+Response:
+{
+  message: string,
+  action: ZakiyAction,
+  urgency: string,
+  task?: { title: string, route: string }
+}
+```
+
+**الخطوات:**
+1. جلب `userProgressTable` بالـ sessionId
+2. حساب `inactiveDays` من `lastActiveDate`
+3. حساب `riskScore` (انظر T1.3)
+4. استدعاء `zakiyEngine.decide(context)`
+5. إرجاع النتيجة
+
+**تحقق من النجاح:** نفس الـ curl السابق مع `/api/zakiy/decide`
+
+---
+
+### T1.3 — Risk Engine
+**الحالة:** `TODO`  
+**يعتمد على:** لا شيء  
+**الملف الجديد:** `artifacts/api-server/src/core/risk-engine.ts`
+
+**المهمة:**  
+استخراج منطق الخطر من `danger-times.tsx` و `sos.tsx` إلى service مستقلة في الـ backend.
+
+```typescript
+interface RiskContext {
+  sessionId: string;
+  inactiveDays: number;
+  lastRelapse: string | null;
+  dangerTimes: Array<{ hour: number; days: number[] }>;  // من إعدادات المستخدم
+  currentHour: number;
+  streakDays: number;
+}
+
+interface RiskResult {
+  score: number;              // 0-100
+  triggers: string[];         // أسباب الخطر
+  shouldTriggerSOS: boolean;
+}
+
+export function analyzeRisk(context: RiskContext): RiskResult
+export function shouldTriggerSOS(score: number): boolean
+```
+
+**قواعد الـ score:**
+- `lastRelapse` منذ أقل من 24 ساعة: +40
+- `inactiveDays >= 3`: +30
+- الوقت الحالي داخل `dangerTimes`: +20
+- `streakDays === 0`: +10
+- `streakDays > 7`: -20 (وقاية)
+
+**ملاحظة مهمة:** `danger-times.tsx` و `sos.tsx` لا يُحذفان — يبقيان كـ UI، فقط منطق الحساب يتنقل للـ backend.
+
+**تحقق من النجاح:** unit test بسيط:
+```typescript
+const result = analyzeRisk({ inactiveDays: 4, lastRelapse: null, dangerTimes: [], currentHour: 14, streakDays: 0 });
+// result.score === 40, result.shouldTriggerSOS === false
+```
+
+---
+
+### T1.4 — User State Hook (Frontend)
+**الحالة:** `TODO`  
+**يعتمد على:** T1.2  
+**الملف الجديد:** `artifacts/tawbah-web/src/core/user-state.ts`
+
+**المهمة:**  
+إنشاء hook موحد يجمع كل state المستخدم في مكان واحد بدون حذف الـ contexts الموجودة.
+
+```typescript
+interface UserState {
+  // من AuthContext
+  userId: string | null;
+  sessionId: string;
+  isLoggedIn: boolean;
+
+  // من API (userProgressTable)
+  streakDays: number;
+  currentPhase: number;
+  covenantSigned: boolean;
+  sinCategory: string;
+  covenantDate: string | null;
+  lastActiveDate: string | null;
+
+  // محسوب
+  inactiveDays: number;
+  riskScore: number;
+  timeOfDay: TimeOfDay;
+
+  // Zakiy Decision (يتحدث عند طلب)
+  zakiyDecision: ZakiyDecision | null;
+  fetchZakiyDecision: () => Promise<void>;
+  isLoadingDecision: boolean;
+}
+
+export function useUserState(): UserState
+```
+
+**التطبيق:**  
+- يستخدم `useAuth()` للـ userId
+- يستخدم `useUserProgress()` للـ progress
+- يحسب `inactiveDays` و `timeOfDay` محلياً
+- `fetchZakiyDecision` يستدعي `POST /api/zakiy/decide`
+
+**تحقق من النجاح:** إضافة `useUserState()` في صفحة بسيطة وعرض `streakDays` في console بدون أخطاء.
+
+---
+
+## Phase 2: دمج الأنظمة
+
+> **الهدف:** دمج الصفحات المتشابهة في modules أكثر ترتيباً. كل دمج يحافظ على نفس الـ routes القديمة عبر redirects.
+
+---
+
+### T2.1 — Task Engine (Backend)
+**الحالة:** `TODO`  
+**يعتمد على:** T1.1  
+**الملف الجديد:** `artifacts/api-server/src/core/task-engine.ts`
+
+**المهمة:**  
+إنشاء service تجمع مصادر المهام الثلاثة وترجع قائمة موحدة.
+
+```typescript
+type TaskSource = 'habits' | 'hadi' | 'journey';
+
+interface UnifiedTask {
+  id: string;
+  source: TaskSource;
+  title: string;
+  completed: boolean;
+  priority: 'required' | 'recommended' | 'optional';
+  route?: string;             // الصفحة اللي تفتحها لو بغى يعمل المهمة
+}
+
+export async function getTodayTasks(sessionId: string, phase: number): Promise<UnifiedTask[]>
+```
+
+**المنطق:**
+- Phase 1: جلب first-day tasks من `habitsTable` (key في `TODAY_HABITS`)
+- Phase 2+: جلب habits يومية + hadi tasks من `hadiTaskItemsTable`
+- ترتيب: required أولاً، بعدين recommended، بعدين optional
+
+**endpoint جديد:** `GET /api/tasks/today?sessionId=xxx`
+
+**تحقق من النجاح:** يرجع array من tasks بدون أخطاء لـ session موجودة.
+
+---
+
+### T2.2 — Journey Flow Consolidation
+**الحالة:** `TODO`  
+**يعتمد على:** لا شيء  
+**الملفات المعنية:**
+- `artifacts/tawbah-web/src/pages/journey/` (الموجود)
+- `artifacts/tawbah-web/src/pages/day-one.tsx` (الموجود)
+- `artifacts/tawbah-web/src/pages/relapse.tsx` (الموجود)
+- `artifacts/tawbah-web/src/pages/progress-chart.tsx` (الموجود)
+
+**المهمة:**  
+إضافة navigation links بين هذه الصفحات بدون دمجها جسدياً. المستخدم يشعر أنها flow واحد.
+
+**التغييرات:**
+1. في `journey/index.tsx`: إضافة زر "عندي انتكاسة" يفتح `/relapse`
+2. في `relapse.tsx`: إضافة زر "العودة للرحلة" يرجع لـ `/journey`
+3. في `progress-chart.tsx`: إضافة link للـ journey
+4. في `day-one.tsx`: عند الإتمام، redirect تلقائي لـ `/journey`
+
+**هذا النهج آمن تماماً** — لا حذف، فقط تحسين navigation.
+
+**تحقق من النجاح:** تأكد أن كل صفحة عندها back button لـ `/journey`.
+
+---
+
+### T2.3 — Community Page Consolidation
+**الحالة:** `TODO`  
+**يعتمد على:** لا شيء  
+**الملف الجديد:** `artifacts/tawbah-web/src/pages/community.tsx`  
+**الصفحات المدموجة (كـ tabs):**
+- `/ameen` → CommunityDuas
+- `/secret-dua` → SecretDua
+- `/dhikr-rooms` → DhikrRooms
+- `/map` → TawbahMap
+
+**المهمة:**  
+إنشاء `/community` كصفحة tabs تحتوي على 4 tabs. الـ routes القديمة تبقى وتعمل redirect لـ `/community?tab=xxx`.
+
+```tsx
+// community.tsx
+const TABS = [
+  { id: 'ameen', label: 'آمين', component: CommunityDuas },
+  { id: 'secret-dua', label: 'دعاء سري', component: SecretDua },
+  { id: 'rooms', label: 'غرف الذكر', component: DhikrRooms },
+  { id: 'map', label: 'الخريطة', component: TawbahMap },
+];
+```
+
+**في `App.tsx`:** إضافة `<Route path="/community" component={Community} />`  
+**الـ routes القديمة تبقى** — لا تُحذف.
+
+**تحقق من النجاح:** `/community` يفتح بدون أخطاء ويعرض 4 tabs.
+
+---
+
+## Phase 3: التحكم الذكي
+
+> **تحذير:** هذا الـ Phase يعدل على `home.tsx` (3549 سطر). التعديلات تكون additive فقط في البداية.
+
+---
+
+### T3.1 — Smart Home Banner
+**الحالة:** `TODO`  
+**يعتمد على:** T1.4 (user-state hook)، T1.2 (zakiy/decide endpoint)  
+**الملف المعدَّل:** `artifacts/tawbah-web/src/pages/home.tsx`
+
+**المهمة:**  
+إضافة component جديد في أعلى الـ home يعرض Zakiy Decision. الـ home القديمة تبقى تماماً.
+
+```tsx
+// إضافة في أعلى home.tsx فقط — لا حذف لأي شيء
+function ZakiySmartBanner() {
+  const { zakiyDecision, fetchZakiyDecision, isLoadingDecision } = useUserState();
+
+  useEffect(() => { fetchZakiyDecision(); }, []);
+
+  if (!zakiyDecision || isLoadingDecision) return null;
+
+  return (
+    <div className="zakiy-banner">
+      <p>{zakiyDecision.message}</p>
+      <button onClick={() => navigate(zakiyDecision.action.route)}>
+        ابدأ الآن
+      </button>
+    </div>
+  );
+}
+```
+
+**هذا النهج آمن:** لو الـ API فشل، الـ banner مش بيعرض — الـ home تبقى كما هي.
+
+**تحقق من النجاح:** الـ banner يظهر في أعلى الصفحة مع رسالة من الزكي.
+
+---
+
+### T3.2 — Auto SOS Trigger
+**الحالة:** `TODO`  
+**يعتمد على:** T1.3 (risk-engine)، T1.4 (user-state)
+
+**المهمة:**  
+في `useUserState()`: إذا كان `riskScore >= 80`، عرض modal SOS تلقائياً بدون انتظار المستخدم.
+
+```typescript
+// في user-state.ts
+useEffect(() => {
+  if (userState.riskScore >= 80 && !sosTriggeredRef.current) {
+    sosTriggeredRef.current = true;
+    navigate('/sos');
+  }
+}, [userState.riskScore]);
+```
+
+**شرط مهم:** يتفعّل مرة واحدة فقط كل 24 ساعة (حفظ في localStorage).
+
+**تحقق من النجاح:** مستخدم بـ `inactiveDays >= 3` و `lastRelapse < 24h` يُعاد توجيهه لـ `/sos`.
+
+---
+
+### T3.3 — Event-Based Notifications Enhancement
+**الحالة:** `TODO`  
+**يعتمد على:** T1.3 (risk-engine)  
+**الملفات:** `artifacts/api-server/src/routes/push.ts` (إضافة)
+
+**المهمة:**  
+إضافة endpoint يُشغَّل عند تحديث user progress ويُنشئ push job بناءً على risk.
+
+```typescript
+// POST /api/zakiy/notify — يُستدعى من frontend بعد أي تغيير في state
+router.post('/zakiy/notify', async (req, res) => {
+  const { sessionId, event } = req.body;
+  // event: 'login' | 'habit_completed' | 'relapse' | 'inactivity'
+
+  const progress = await getProgress(sessionId);
+  const risk = analyzeRisk({ ...progress });
+
+  if (risk.score >= 60) {
+    // أنشئ push job يُرسل خلال ساعة
+    await schedulePushJob(sessionId, {
+      type: 'risk_alert',
+      fireAt: new Date(Date.now() + 60 * 60 * 1000),
+    });
+  }
+});
+```
+
+**تحقق من النجاح:** استدعاء الـ endpoint ينشئ row في `push_jobs`.
+
+---
+
+## Phase 4: تحسين التجربة
+
+---
+
+### T4.1 — Dynamic UI Theme
+**الحالة:** `TODO`  
+**يعتمد على:** T1.4 (user-state)  
+**الملف المعدَّل:** `artifacts/tawbah-web/src/context/SettingsContext.tsx`
+
+**المهمة:**  
+إضافة `moodTheme` للـ SettingsContext بناءً على `riskScore`.
+
+```typescript
+type MoodTheme = 'calm' | 'alert' | 'emergency';
+
+// في SettingsContext
+const moodTheme: MoodTheme =
+  riskScore >= 80 ? 'emergency' :
+  riskScore >= 50 ? 'alert' : 'calm';
+```
+
+**CSS Variables:**
+- `calm`: ألوان خضراء هادئة (الحالية)
+- `alert`: ألوان برتقالية / ذهبية
+- `emergency`: ألوان حمراء داكنة
+
+**تحقق من النجاح:** تغيير `riskScore` يغير لون الـ header.
+
+---
+
+### T4.2 — Audio Mode Enhancement
+**الحالة:** `TODO`  
+**يعتمد على:** T1.4 (user-state)
+
+**المهمة:**  
+في `munajat.tsx`: إضافة auto-detect للوقت وتشغيل audio مناسب.
+- وقت الفجر: أذكار الصباح
+- وقت الليل: سورة البقرة أو المعوذتين
+- وقت المغرب: أذكار المساء
+
+**هذا الـ feature موجود جزئياً في `munajat.tsx`** — فقط إضافة auto-detect.
+
+**تحقق من النجاح:** فتح `/munajat` في وقت الفجر يشغّل أذكار الصباح تلقائياً.
+
+---
+
+## ترتيب التنفيذ الصح
+
+```
+T1.3 (Risk Engine)           ← لا dependencies
+    ↓
+T1.1 (Zakiy Engine)          ← يستخدم Risk Engine
+    ↓
+T1.2 (API /zakiy/decide)     ← يستخدم Zakiy Engine
+    ↓
+T1.4 (User State Hook)       ← يستخدم /zakiy/decide
+    ↓
+T2.1 (Task Engine)           ← يعتمد على T1.1 للـ context
+T2.2 (Journey Navigation)    ← مستقل
+T2.3 (Community Page)        ← مستقل
+    ↓ (بعد Phase 2)
+T3.1 (Smart Home Banner)     ← يعتمد على T1.4 + T1.2
+T3.2 (Auto SOS)              ← يعتمد على T1.3 + T1.4
+T3.3 (Event Notifications)   ← يعتمد على T1.3
+    ↓ (بعد Phase 3)
+T4.1 (Dynamic Theme)         ← يعتمد على T1.4
+T4.2 (Audio Enhancement)     ← يعتمد على T1.4
+```
+
+T2.2 و T2.3 يمكن تشغيلهم بالتوازي مع T2.1.
+
+---
+
+## ما لن يُعمل في هذه الخطة (وسبب واضح)
+
+| الفكرة الأصلية | القرار | السبب |
+|---|---|---|
+| حذف كل الصفحات وعمل صفحة Home بزر واحد | ❌ لن يُنفَّذ | `home.tsx` = 3549 سطر من كود يعمل. الحذف الكامل سيكسر المشروع لأسابيع |
+| Community merge بحذف الصفحات القديمة | ❌ لن يُحذف | الروابط القديمة موجودة في الـ home وأماكن أخرى |
+| Journey merge كـ ملف واحد | ❌ تعقيد بدون فائدة | التنقل بين الصفحات يحقق نفس الهدف |
+| مكالمة Zakiy لكل حركة في التطبيق | ❌ مكلف جداً | GPT-4o = API call مكلف. Rule-based engine أولاً، AI للـ message فقط |
+
+---
+
+## متطلبات البيئة
+
+قبل البدء، تأكد من وجود هذه المتغيرات:
+
+```bash
+echo $DATABASE_URL        # يجب أن يكون موجوداً
+echo $SUPABASE_URL        # للـ auth
+echo $SUPABASE_ANON_KEY   # للـ auth
+# OPENAI_API_KEY مُدار عبر Replit proxy تلقائياً
