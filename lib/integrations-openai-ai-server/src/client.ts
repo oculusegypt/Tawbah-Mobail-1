@@ -1,27 +1,25 @@
 import OpenAI from "openai";
 
-let _openai: OpenAI | null = null;
-
 export function getOpenAI(): OpenAI {
-  if (!_openai) {
-    if (!process.env.AI_INTEGRATIONS_OPENAI_BASE_URL) {
-      throw new Error(
-        "AI_INTEGRATIONS_OPENAI_BASE_URL must be set. Did you forget to provision the OpenAI AI integration?",
-      );
-    }
-
-    if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
-      throw new Error(
-        "AI_INTEGRATIONS_OPENAI_API_KEY must be set. Did you forget to provision the OpenAI AI integration?",
-      );
-    }
-
-    _openai = new OpenAI({
+  // Prefer Replit's managed integration if available
+  if (
+    process.env.AI_INTEGRATIONS_OPENAI_BASE_URL &&
+    process.env.AI_INTEGRATIONS_OPENAI_API_KEY
+  ) {
+    return new OpenAI({
       apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
       baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
     });
   }
-  return _openai;
+
+  // Fall back to direct OpenAI API key
+  if (process.env.OPENAI_API_KEY) {
+    return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+
+  throw new Error(
+    "No OpenAI credentials found. Please set OPENAI_API_KEY as a secret.",
+  );
 }
 
 export const openai = new Proxy({} as OpenAI, {
