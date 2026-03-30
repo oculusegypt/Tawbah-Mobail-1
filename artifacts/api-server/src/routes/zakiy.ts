@@ -532,7 +532,7 @@ function stripEmojisAndSymbols(text: string): string {
 }
 
 const HF_TTS_MODEL = "facebook/mms-tts-ara";
-const HF_TTS_URL = `https://api-inference.huggingface.co/models/${HF_TTS_MODEL}`;
+const HF_TTS_URL = `https://router.huggingface.co/hf-inference/models/${HF_TTS_MODEL}`;
 const HF_MAX_RETRIES = 5;
 const HF_RETRY_DELAY_MS = 3000;
 
