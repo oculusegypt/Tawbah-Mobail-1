@@ -27,7 +27,7 @@ export function getApiBase(): string {
       ? localStorage.getItem("tawbah_api_base")
       : null;
     if (stored) return stored;
-    return "https://ai--Tawbah.replit.app/api";
+    return "https://14--Taw-12.replit.app/api";
   }
   return "/api";
 }

@@ -48,8 +48,9 @@ export default defineConfig({
     allowedHosts: true,
     proxy: {
       "/api": {
-        target: "http://localhost:8080",
+        target: "https://14--Taw-12.replit.app",
         changeOrigin: true,
+        secure: true,
       },
     },
     fs: {

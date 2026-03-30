@@ -251,7 +251,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
               // Native: use LocalNotifications for real status-bar notification with sound
               let channelId = "reminder";
               let sound = "takbeer";
-              if (n.tag.startsWith("prayer-")) { channelId = "prayer"; sound = "takbeer"; }
+              if (n.tag.startsWith("prayer-")) { channelId = "prayer"; sound = "azan"; }
               else if (n.tag === "morning-adhkar") { channelId = "adhkar"; sound = "azkar_sabah"; }
               else if (n.tag === "evening-adhkar") { channelId = "adhkar"; sound = "azkar_masaa"; }
               await showLocalNotifNow({ title: n.title, body: n.body, tag: n.tag, channelId, sound, url: n.url ?? "/" });

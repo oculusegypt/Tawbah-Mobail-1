@@ -69,7 +69,7 @@ export async function createNotificationChannels(): Promise<void> {
       name: "أوقات الصلاة",
       description: "إشعارات أوقات الصلاة",
       importance: 5,
-      sound: "takbeer",
+      sound: "azan",
       vibration: true,
       lights: true,
     },
@@ -127,7 +127,7 @@ export interface ScheduledItem {
 let _scheduledIds: number[] = [];
 
 function getSoundForChannel(channelId?: string): string {
-  if (channelId === "prayer") return "takbeer";
+  if (channelId === "prayer") return "azan";
   if (channelId === "adhkar") return "azkar_sabah";
   return "takbeer";
 }
