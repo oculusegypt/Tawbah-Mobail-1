@@ -145,7 +145,7 @@ function AdhkarModalBridge() {
 }
 
 function StatusBarBridge() {
-  const { theme } = useSettings();
+  const { theme, accentColor } = useSettings();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -155,8 +155,10 @@ function StatusBarBridge() {
   useEffect(() => {
     if (!ready || !theme) return;
     import("@capacitor/status-bar").then(({ StatusBar, Style }) => {
-      StatusBar.setStyle({ style: theme === "dark" ? Style.Dark : Style.Light }).catch(() => {});
-      StatusBar.setBackgroundColor({ color: theme === "dark" ? "#0d1117" : "#ffffff" }).catch(() => {});
+      // Capacitor: Style.Dark = dark icons (for light background), Style.Light = light icons (for dark background)
+      StatusBar.setStyle({ style: theme === "dark" ? Style.Light : Style.Dark }).catch(() => {});
+      const bgColor = theme === "dark" ? "#0d1117" : "#ffffff";
+      StatusBar.setBackgroundColor({ color: bgColor }).catch(() => {});
     }).catch(() => {});
   }, [theme, ready]);
 

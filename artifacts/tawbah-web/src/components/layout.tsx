@@ -1,67 +1,85 @@
 import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Home, Calendar, CircleDot, ShieldAlert, BarChart2, HelpCircle, User2, X, ChevronUp } from "lucide-react";
+import { Home, Calendar, CircleDot, ShieldAlert, BarChart2, HelpCircle, User2, X, ChevronUp, Sparkles, Bot } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/context/SettingsContext";
 import { VoiceOrbOverlay } from "./VoiceOrbOverlay";
 import { isNativeApp, getApiBase } from "@/lib/api-base";
 
-const WAVE_BARS = [0.35, 0.65, 1, 0.8, 0.5, 0.9, 0.6, 0.4, 0.75, 0.95, 0.55, 0.7, 0.45, 0.85, 0.6];
-
 function ZakiyNavOrb({ isActive }: { isActive: boolean }) {
   return (
     <div className="relative w-[60px] h-[60px]">
-      {/* Soft primary glow */}
+      {/* Ambient glow */}
       <div
         className="absolute rounded-full pointer-events-none"
         style={{
-          inset: "-6px",
-          background: "radial-gradient(circle, hsl(var(--primary)/0.14) 0%, transparent 70%)",
-          filter: "blur(8px)",
+          inset: "-8px",
+          background: "radial-gradient(circle, hsl(var(--primary)/0.2) 0%, transparent 70%)",
+          filter: "blur(12px)",
         }}
       />
 
-      {/* Pulse rings */}
-      {[0, 1].map((i) => (
+      {/* Animated rings */}
+      {[0, 1, 2].map((i) => (
         <motion.div
           key={i}
           className="absolute inset-0 rounded-full"
-          style={{ border: "1px solid hsl(var(--primary)/0.22)" }}
-          animate={{ scale: [1, 1.18, 1], opacity: [0.22, 0, 0.22] }}
-          transition={{ duration: 5, repeat: Infinity, delay: i * 2.2, ease: "easeInOut" }}
+          style={{ 
+            border: i === 0 ? "2px solid hsl(var(--primary)/0.35)" : "1px solid hsl(var(--primary)/0.15)",
+          }}
+          animate={{ 
+            scale: [1, 1.15 + i * 0.08, 1], 
+            opacity: [0.35 - i * 0.1, 0, 0.35 - i * 0.1] 
+          }}
+          transition={{ 
+            duration: 3 + i * 0.5, 
+            repeat: Infinity, 
+            delay: i * 0.8, 
+            ease: "easeInOut" 
+          }}
         />
       ))}
 
-      {/* Main orb */}
+      {/* Main orb with gradient */}
       <div
         className="absolute inset-0 rounded-full overflow-hidden flex items-center justify-center"
         style={{
-          background: "linear-gradient(145deg, hsl(var(--primary)/0.82), hsl(var(--primary)/0.62))",
+          background: "linear-gradient(145deg, hsl(var(--primary)/0.95), hsl(var(--primary)/0.75))",
           boxShadow: isActive
-            ? "0 0 0 2px hsl(var(--primary)/0.3), 0 0 14px hsl(var(--primary)/0.2), 0 4px 14px rgba(0,0,0,0.18)"
-            : "0 0 0 1.5px hsl(var(--primary)/0.18), 0 0 8px hsl(var(--primary)/0.12), 0 3px 10px rgba(0,0,0,0.14)",
+            ? "0 0 0 3px hsl(var(--primary)/0.25), 0 0 20px hsl(var(--primary)/0.3), 0 4px 20px rgba(0,0,0,0.25)"
+            : "0 0 0 2px hsl(var(--primary)/0.2), 0 0 12px hsl(var(--primary)/0.15), 0 3px 12px rgba(0,0,0,0.2)",
         }}
       >
-        {/* Gloss */}
+        {/* Gloss effect */}
         <div
           className="absolute inset-0 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at 38% 28%, rgba(255,255,255,0.15) 0%, transparent 60%)" }}
+          style={{ 
+            background: "radial-gradient(ellipse at 35% 25%, rgba(255,255,255,0.25) 0%, transparent 55%)",
+          }}
         />
 
-        {/* Sound wave bars */}
-        <div className="relative z-10 flex items-center gap-[2px]">
-          {WAVE_BARS.map((h, i) => (
-            <motion.div
-              key={i}
-              className="rounded-full"
-              style={{ width: 2, background: "hsl(var(--primary-foreground)/0.92)", originY: "50%" }}
-              animate={{ scaleY: [h * 0.25, h, h * 0.45, h * 0.7, h * 0.25] }}
-              transition={{ duration: 2.4 + (i % 5) * 0.25, repeat: Infinity, delay: i * 0.11, ease: "easeInOut" }}
-              initial={{ height: Math.round(h * 24) }}
-            />
-          ))}
-        </div>
+        {/* AI Bot Icon */}
+        <motion.div
+          animate={{ 
+            scale: [1, 1.05, 1],
+            rotate: [0, 3, -3, 0]
+          }}
+          transition={{ 
+            duration: 4, 
+            repeat: Infinity, 
+            ease: "easeInOut" 
+          }}
+        >
+          <Bot 
+            size={28} 
+            strokeWidth={1.8}
+            className="text-primary-foreground"
+            style={{
+              filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.15))",
+            }}
+          />
+        </motion.div>
       </div>
     </div>
   );
@@ -289,32 +307,29 @@ export function Layout({ children }: { children: ReactNode }) {
                     <NavItem key={item.href} {...item} />
                   ))}
 
-                  {/* Center spacer for orb */}
-                  <div className="flex-none" style={{ width: "22%" }} />
+                  {/* Center Zakiy button (inline, not raised) */}
+                  <Link
+                    href={zakiHref}
+                    className="relative flex flex-col items-center justify-center flex-none h-full tap-highlight-transparent"
+                    style={{ width: "22%" }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setVoiceOpen(true);
+                    }}
+                    aria-label="زكي"
+                    title="زكي"
+                  >
+                    <motion.div whileTap={{ scale: 0.92 }} className="relative">
+                      <div className="scale-[0.88]">
+                        <ZakiyNavOrb isActive={isZakiActive} />
+                      </div>
+                    </motion.div>
+                  </Link>
 
                   {rightItems.map((item) => (
                     <NavItem key={item.href} {...item} />
                   ))}
                 </div>
-              </div>
-
-              {/* Zaki orb — floats above pill center */}
-              <div
-                className="absolute left-1/2 -translate-x-1/2 -top-[26px] z-50"
-                style={{ filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.2)) drop-shadow(0 2px 5px rgba(0,0,0,0.12))" }}
-              >
-                <button
-                  onClick={() => setVoiceOpen(true)}
-                  className="block tap-highlight-transparent focus:outline-none"
-                >
-                  <motion.div
-                    whileTap={{ scale: 0.92 }}
-                    whileHover={{ scale: 1.06 }}
-                    className="relative"
-                  >
-                    <ZakiyNavOrb isActive={isZakiActive} />
-                  </motion.div>
-                </button>
               </div>
             </div>
           </nav>
