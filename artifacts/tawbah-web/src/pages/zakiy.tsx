@@ -1120,7 +1120,9 @@ function BotMessageBody({
       const binary = atob(seg.audioBase64);
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const url = URL.createObjectURL(new Blob([bytes], { type: "audio/mp3" }));
+      const isWav = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46;
+      const mimeType = isWav ? "audio/wav" : "audio/mpeg";
+      const url = URL.createObjectURL(new Blob([bytes], { type: mimeType }));
       audio = new Audio(url);
       textAudioRefs.current[playIdx] = audio;
     }

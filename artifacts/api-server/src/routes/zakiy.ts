@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { speechToText, ensureCompatibleFormat } from "@workspace/integrations-openai-ai-server/audio";
+import { HfInference } from "@huggingface/inference";
 import { db } from "@workspace/db";
 import { zakiyMemoryTable, journalEntriesTable, userProgressTable, notificationSettingsTable } from "@workspace/db/schema";
 import { eq, desc } from "drizzle-orm";
@@ -531,23 +532,21 @@ function stripEmojisAndSymbols(text: string): string {
     .trim();
 }
 
-async function generateZakiyAudio(text: string, voiceProfileId?: string): Promise<string> {
+const hf = new HfInference(process.env.HF_TOKEN ?? undefined);
+
+const HF_ARABIC_TTS_MODEL = "facebook/mms-tts-ara";
+
+async function generateZakiyAudio(text: string, _voiceProfileId?: string): Promise<string> {
   const cleanText = stripEmojisAndSymbols(stripForTTS(text));
   if (!cleanText.trim()) return "";
 
-  const profileId = voiceProfileId && VOICE_PROFILES[voiceProfileId] ? voiceProfileId : DEFAULT_VOICE_PROFILE;
-  const profile = VOICE_PROFILES[profileId]!;
-
-  const ttsResponse = await openai.chat.completions.create({
-    model: "gpt-audio",
-    modalities: ["text", "audio"],
-    audio: { voice: profile.voice, format: "mp3" },
-    messages: [
-      { role: "system", content: profile.system },
-      { role: "user", content: cleanText },
-    ],
+  const blob = await hf.textToSpeech({
+    model: HF_ARABIC_TTS_MODEL,
+    inputs: cleanText,
   });
-  return (ttsResponse.choices[0]?.message as any)?.audio?.data ?? "";
+
+  const arrayBuffer = await blob.arrayBuffer();
+  return Buffer.from(arrayBuffer).toString("base64");
 }
 
 // ══════════════════════════════════════════
