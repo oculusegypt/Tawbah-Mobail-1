@@ -532,21 +532,9 @@ function stripEmojisAndSymbols(text: string): string {
     .trim();
 }
 
-const hf = new HfInference(process.env.HF_TOKEN ?? undefined);
-
-const HF_ARABIC_TTS_MODEL = "facebook/mms-tts-ara";
-
-async function generateZakiyAudio(text: string, _voiceProfileId?: string): Promise<string> {
-  const cleanText = stripEmojisAndSymbols(stripForTTS(text));
-  if (!cleanText.trim()) return "";
-
-  const blob = await hf.textToSpeech({
-    model: HF_ARABIC_TTS_MODEL,
-    inputs: cleanText,
-  });
-
-  const arrayBuffer = await blob.arrayBuffer();
-  return Buffer.from(arrayBuffer).toString("base64");
+// TTS is handled client-side via Web Speech API — no server audio generation needed
+async function generateZakiyAudio(_text: string, _voiceProfileId?: string): Promise<string> {
+  return "";
 }
 
 // ══════════════════════════════════════════
