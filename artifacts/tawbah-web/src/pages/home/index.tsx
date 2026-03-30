@@ -33,7 +33,7 @@ import {
 } from "./types";
 import type { SectionId, ListId } from "./types";
 import { SECTION_LABELS } from "./list-sections";
-import { HeroBellButton } from "./HeroBellButton";
+import { HomeHeroBar } from "./HomeHeroBar";
 import { SosReturnToast } from "./SosReturnToast";
 import { EidEntryCard } from "./EidEntryCard";
 import { DailyFocusCard } from "./DailyFocusCard";
@@ -118,10 +118,10 @@ export default function Home() {
         <ZakiyModeDashboard />
       ) : (
         <>
-          {/* Hero + bell overlay */}
+          {/* Hero + header overlay */}
           <div className="relative">
             <IslamicHero />
-            <HeroBellButton />
+            <HomeHeroBar />
           </div>
           <div className="px-5 relative z-10 flex flex-col gap-4 pl-[7px] pr-[7px] mt-[-88px]">
             {/* Quick Access Bar */}

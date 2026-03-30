@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Loader2, StopCircle, AlertTriangle, Sparkles, ChevronDown, X } from "lucide-react";
-import { PageHeader } from "@/components/PageHeader";
+import { ContextHeader } from "@/components/header/ContextHeader";
+import { getZakiyState } from "@/core/theme";
 import { cn } from "@/lib/utils";
 import { getSessionId } from "@/lib/session";
 import { voicePending } from "@/lib/voice-pending";
@@ -38,6 +39,8 @@ export default function ZakiyPage() {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
+
+  const [zakiyCurrentState] = useState(() => getZakiyState());
 
   const sessionId = getSessionId();
   const hasUserMessages = messages.some((m) => m.role === "user");
@@ -376,9 +379,10 @@ export default function ZakiyPage() {
         )}
       </AnimatePresence>
 
-      <PageHeader
+      <ContextHeader
         title="الزكي"
         subtitle="صاحبك الروحاني دايماً معاك"
+        zakiyState={zakiyCurrentState}
         icon={
           <span
             className="text-white font-bold leading-none"

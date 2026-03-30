@@ -127,6 +127,19 @@ Express 5 API server. Routes:
 React+Vite web app with Arabic RTL layout, Islamic green/gold theme.
 Pages: home, covenant, day-one, plan, dhikr, sos, signs, relapse
 
+#### Dynamic Header System (`src/components/header/`)
+Three adaptive header variants — all use design tokens only:
+
+- **`StandardHeader`** — Enhanced sticky header for all inner pages. Replaces the old `PageHeader`. Supports scroll-shrink animation (compact at >12px scroll). Props: `title`, `subtitle`, `icon`, `showBack`, `onBack`, `right`.
+- **`HeroHeader`** — Transparent absolute overlay for pages with hero backgrounds. Compact on scroll (>60px). Props: `title`, `subtitle`, `showBack`, `leftActions`, `rightActions`, `bottomContent`.
+- **`ContextHeader`** — State-aware header for Zakiy and smart pages. Responds to `zakiyState` (`emergency`/`repentance`/`growth`) with subtle color tinting and an animated accent border. Props extend `StandardHeader` + `zakiyState`.
+- **`PageHeader`** — Backward-compat shim that delegates to `StandardHeader`. All existing pages using it continue to work unchanged.
+
+**Page-specific integrations:**
+- **Home page**: `HomeHeroBar` overlaid on `IslamicHero` — notifications bell, theme toggle (sun/moon), language toggle (AR/EN).
+- **Zakiy page**: Uses `ContextHeader` with dynamic zakiy state awareness (color shifts per state).
+- **Quran page**: Uses `StandardHeader` with an `أقسام` dropdown button revealing a 3×3 grid of all Quran sections (quick nav).
+
 ### `artifacts/tawbah-mobile` (`@workspace/tawbah-mobile`)
 
 Expo React Native app with 4 tabs + 4 modal/stack screens.
