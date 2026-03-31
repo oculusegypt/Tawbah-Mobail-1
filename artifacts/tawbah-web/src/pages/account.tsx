@@ -12,6 +12,7 @@ import { useNotifications } from "@/context/NotificationsContext";
 import { useAppUserProgress, useAppDhikrCount, useAppHabits } from "@/hooks/use-app-data";
 import { useQuery } from "@tanstack/react-query";
 import { getAuthHeader } from "@/lib/auth-client";
+import { getSessionId } from "@/lib/session";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { AnimatePresence } from "framer-motion";
@@ -186,22 +187,22 @@ export default function Account() {
   const { data: journey30 } = useQuery<{ completedCount: number; currentDay: number; streakDays: number }>({
     queryKey: ["journey30-account"],
     queryFn: async () => {
-      const res = await fetch("/api/journey30", { headers: { ...getAuthHeader() } });
-      if (!res.ok) throw new Error();
+      const sessionId = getSessionId();
+      const res = await fetch(`/api/journey30?sessionId=${encodeURIComponent(sessionId)}`, { headers: { ...getAuthHeader() } });
+      if (!res.ok) return { completedCount: 0, currentDay: 1, streakDays: 0 };
       return res.json();
     },
-    enabled: !!user,
     staleTime: 60_000,
     retry: 1,
   });
 
-  const dayCount = progress?.day40Progress ?? 0;
-  const streak = progress?.streakDays ?? 0;
+  const streak = journey30?.streakDays ?? progress?.streakDays ?? 0;
   const signed = progress?.covenantSigned;
   const dhikrToday = dhikrData?.istighfar ?? 0;
   const habitsCompleted = habits?.filter(h => h.completed).length ?? 0;
   const habitsTotal = habits?.length ?? 0;
   const journeyDays = journey30?.completedCount ?? 0;
+  const journeyCurrentDay = journey30?.currentDay ?? (journeyDays + 1);
 
   return (
     <div className="flex flex-col flex-1 pb-8 px-5 pt-5">
@@ -256,9 +257,9 @@ export default function Account() {
           <span className="text-2xl font-bold text-amber-500">{journeyDays}</span>
           <p className="text-[10px] text-muted-foreground mt-0.5">📅 من ٣٠ يوماً</p>
         </div>
-        <div className="bg-card border border-border rounded-2xl p-3 text-center">
-          <span className="text-2xl font-bold text-emerald-500">{dayCount}</span>
-          <p className="text-[10px] text-muted-foreground mt-0.5">🗓 يوم في الخطة</p>
+        <div className="bg-card border border-emerald-400/25 rounded-2xl p-3 text-center">
+          <span className="text-2xl font-bold text-emerald-500">{journeyCurrentDay}</span>
+          <p className="text-[10px] text-muted-foreground mt-0.5">🗓 اليوم الحالي</p>
         </div>
 
         {/* Row 2 */}
