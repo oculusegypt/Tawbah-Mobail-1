@@ -5,11 +5,14 @@ import {
   User2, Settings2, Moon, Sun, Languages, Volume2, BookOpen,
   ChevronDown, Check, BarChart2, Calendar, Clock,
   ScrollText, PenLine, Bell, ChevronLeft, Shield, Palette, CheckSquare,
-  Zap, Music2, ImageIcon, Upload, RotateCcw,
+  Zap, Music2, ImageIcon, Upload, RotateCcw, LogOut, Bot,
 } from "lucide-react";
 import { useSettings, QURAN_RECITERS, ACCENT_OPTIONS, type AccentColor } from "@/context/SettingsContext";
 import { useNotifications } from "@/context/NotificationsContext";
-import { useAppUserProgress } from "@/hooks/use-app-data";
+import { useAppUserProgress, useAppDhikrCount, useAppHabits } from "@/hooks/use-app-data";
+import { useQuery } from "@tanstack/react-query";
+import { getAuthHeader } from "@/lib/auth-client";
+import { getSessionId } from "@/lib/session";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { AnimatePresence } from "framer-motion";
@@ -122,7 +125,7 @@ export default function Account() {
   const { lang, theme, accentColor, autoPlayBotAudio, autoPlayQuran, quranReciterId,
     toggleLang, toggleTheme, setAccentColor, setAutoPlayBotAudio, setAutoPlayQuran, setQuranReciterId } = useSettings();
   const { settings: notifSettings, updateSettings: updateNotifSettings } = useNotifications();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { data: progress } = useAppUserProgress();
   const [reciterOpen, setReciterOpen] = useState(false);
   const currentReciter = QURAN_RECITERS.find(r => r.id === quranReciterId) ?? QURAN_RECITERS[0]!;
@@ -179,10 +182,27 @@ export default function Account() {
     window.dispatchEvent(new CustomEvent("hero-bg-light-changed", { detail: null }));
   };
 
-  const dayCount = progress?.day40Progress ?? 0;
-  const streak = progress?.streakDays ?? 0;
+  const { data: dhikrData } = useAppDhikrCount();
+  const { data: habits } = useAppHabits();
+  const { data: journey30 } = useQuery<{ completedCount: number; currentDay: number; streakDays: number }>({
+    queryKey: ["journey30-account"],
+    queryFn: async () => {
+      const sessionId = getSessionId();
+      const res = await fetch(`/api/journey30?sessionId=${encodeURIComponent(sessionId)}`, { headers: { ...getAuthHeader() } });
+      if (!res.ok) return { completedCount: 0, currentDay: 1, streakDays: 0 };
+      return res.json();
+    },
+    staleTime: 60_000,
+    retry: 1,
+  });
+
+  const streak = journey30?.streakDays ?? progress?.streakDays ?? 0;
   const signed = progress?.covenantSigned;
-  const phase = progress?.currentPhase ?? "—";
+  const dhikrToday = dhikrData?.istighfar ?? 0;
+  const habitsCompleted = habits?.filter(h => h.completed).length ?? 0;
+  const habitsTotal = habits?.length ?? 0;
+  const journeyDays = journey30?.completedCount ?? 0;
+  const journeyCurrentDay = journey30?.currentDay ?? (journeyDays + 1);
 
   return (
     <div className="flex flex-col flex-1 pb-8 px-5 pt-5">
@@ -192,8 +212,30 @@ export default function Account() {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col items-center mb-6"
       >
-        <div className="w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center mb-3">
-          <User2 size={38} className="text-primary/60" />
+        <div className="relative w-20 h-20 mb-3">
+          <div className="w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
+            <User2 size={38} className="text-primary/60" />
+          </div>
+
+          <Link
+            href="/zakiy"
+            className="absolute -right-1 -bottom-1 w-9 h-9 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 flex items-center justify-center hover:brightness-110 transition-all"
+            title="زكي"
+            aria-label="زكي"
+          >
+            <Bot size={16} strokeWidth={2.2} />
+          </Link>
+
+          {user && (
+            <button
+              onClick={logout}
+              className="absolute -left-1 -bottom-1 w-9 h-9 rounded-full bg-card border border-border shadow-lg shadow-black/10 flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive/30 transition-colors"
+              title="تسجيل الخروج"
+              aria-label="تسجيل الخروج"
+            >
+              <LogOut size={16} strokeWidth={2.2} />
+            </button>
+          )}
         </div>
         <h1 className="text-lg font-bold">حسابي</h1>
         <p className="text-xs text-muted-foreground mt-0.5">{getHijriDate()}</p>
@@ -204,19 +246,36 @@ export default function Account() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
-        className="grid grid-cols-3 gap-3 mb-5"
+        className="grid grid-cols-3 gap-2.5 mb-5"
       >
+        {/* Row 1 */}
         <div className="bg-card border border-border rounded-2xl p-3 text-center">
-          <span className="text-2xl font-bold text-primary">{dayCount}</span>
-          <p className="text-[10px] text-muted-foreground mt-0.5">يوم في الخطة</p>
+          <span className="text-2xl font-bold text-primary">{streak}</span>
+          <p className="text-[10px] text-muted-foreground mt-0.5">🔥 يوم متواصل</p>
         </div>
-        <div className="bg-card border border-border rounded-2xl p-3 text-center">
-          <span className="text-2xl font-bold text-amber-500">{streak}</span>
-          <p className="text-[10px] text-muted-foreground mt-0.5">يوم متواصل</p>
+        <div className="bg-card border border-amber-400/25 rounded-2xl p-3 text-center">
+          <span className="text-2xl font-bold text-amber-500">{journeyDays}</span>
+          <p className="text-[10px] text-muted-foreground mt-0.5">📅 من ٣٠ يوماً</p>
         </div>
-        <div className="bg-card border border-border rounded-2xl p-3 text-center">
-          <span className="text-2xl font-bold text-emerald-500">{signed ? "✓" : "—"}</span>
-          <p className="text-[10px] text-muted-foreground mt-0.5">العهد مع الله</p>
+        <div className="bg-card border border-emerald-400/25 rounded-2xl p-3 text-center">
+          <span className="text-2xl font-bold text-emerald-500">{journeyCurrentDay}</span>
+          <p className="text-[10px] text-muted-foreground mt-0.5">🗓 اليوم الحالي</p>
+        </div>
+
+        {/* Row 2 */}
+        <div className="bg-card border border-blue-400/25 rounded-2xl p-3 text-center">
+          <span className="text-2xl font-bold text-blue-500">{dhikrToday}</span>
+          <p className="text-[10px] text-muted-foreground mt-0.5">📿 استغفار اليوم</p>
+        </div>
+        <div className="bg-card border border-violet-400/25 rounded-2xl p-3 text-center">
+          <span className="text-xl font-bold text-violet-500">
+            {habitsTotal > 0 ? `${habitsCompleted}/${habitsTotal}` : "—"}
+          </span>
+          <p className="text-[10px] text-muted-foreground mt-0.5">✅ عادات اليوم</p>
+        </div>
+        <div className="bg-card border border-emerald-400/25 rounded-2xl p-3 text-center">
+          <span className="text-2xl font-bold text-emerald-600">{signed ? "✓" : "—"}</span>
+          <p className="text-[10px] text-muted-foreground mt-0.5">🤲 العهد مع الله</p>
         </div>
       </motion.div>
 

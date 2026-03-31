@@ -572,7 +572,7 @@ export async function scheduleAll(settings: NotificationSettings): Promise<void>
     const items: ScheduledItem[] = notifs.map((n, i) => {
       let channelId = "reminder";
       let sound = "takbeer";
-      if (n.tag.startsWith("prayer-")) { channelId = "prayer"; sound = "takbeer"; }
+      if (n.tag.startsWith("prayer-")) { channelId = "prayer"; sound = "azan"; }
       else if (n.tag === "morning-adhkar" || n.tag === "evening-adhkar") { channelId = "adhkar"; sound = n.tag === "morning-adhkar" ? "azkar_sabah" : "azkar_masaa"; }
       return {
         id: hashTag(n.tag) + i,

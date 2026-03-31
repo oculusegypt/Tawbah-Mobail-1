@@ -396,9 +396,9 @@ function useJourney30Data() {
     queryKey: ["/api/journey30-progress"],
     queryFn: async () => {
       const sessionId = getSessionId();
-      const res = await fetch(`${getApiBase()}/journey30`, { headers: { ...getAuthHeader() } });
-      if (!res.ok) return { completedCount: 0, currentDay: 1 };
-      return res.json() as Promise<{ completedCount: number; currentDay: number }>;
+      const res = await fetch(`${getApiBase()}/journey30?sessionId=${encodeURIComponent(sessionId)}`, { headers: { ...getAuthHeader() } });
+      if (!res.ok) return { completedCount: 0, currentDay: 1, streakDays: 0 };
+      return res.json() as Promise<{ completedCount: number; currentDay: number; streakDays: number }>;
     },
     staleTime: 1000 * 60 * 5,
   });
@@ -460,7 +460,7 @@ export default function ProgressChart() {
   const completedToday = todayHabits.filter((h) => h.completed).length;
   const totalHabits = todayHabits.length || 5;
   const journey30Days = journey30?.completedCount || 0;
-  const streakDays = progress?.streakDays || 0;
+  const streakDays = journey30?.streakDays || progress?.streakDays || 0;
   const totalIstighfar = weekData.reduce((s, d) => s + d.istighfar, 0);
   const avgHabits = weekData.length > 0
     ? Math.round((weekData.reduce((s, d) => s + (d.habitsTotal > 0 ? d.habitsCompleted / d.habitsTotal : 0), 0) / weekData.length) * 100)

@@ -22,7 +22,7 @@ import {
   BookMarked,
 } from "lucide-react";
 import { Link } from "wouter";
-import { PageHeader } from "@/components/PageHeader";
+import { StandardHeader } from "@/components/header/StandardHeader";
 import { useSettings, QURAN_RECITERS } from "@/context/SettingsContext";
 import { getApiBase } from "@/lib/api-base";
 
@@ -2840,10 +2840,60 @@ function QuickActions() {
 
 export default function QuranPage() {
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
+  const [navOpen, setNavOpen] = useState(false);
+
+  const quranNavItems = [
+    { icon: "📖", label: "القراءة", sub: "تصفح السور", href: "/quran/read" },
+    { icon: "🔊", label: "الاستماع", sub: "مع ترتيل", href: "/quran/listen" },
+    { icon: "🧠", label: "الحفظ", sub: "مساعد الحفظ", href: "/quran/memorize" },
+    { icon: "💡", label: "التفسير", sub: "معاني الآيات", href: "/quran/tafsir" },
+    { icon: "🤲", label: "التجويد", sub: "أحكام التجويد", href: "/quran/tajweed" },
+    { icon: "🤖", label: "مساعد القرآن", sub: "الذكاء الاصطناعي", href: "/quran/ai" },
+    { icon: "📅", label: "الختمات", sub: "ختمات تاريخية", href: "/quran/khatmat" },
+    { icon: "👥", label: "الختمة الجماعية", sub: "مع أصدقائك", href: "/quran/khatma" },
+    { icon: "🔥", label: "التحديات", sub: "تحدّ نفسك", href: "/quran/challenges" },
+  ];
 
   return (
     <div className="min-h-screen pb-24" dir="rtl">
-      <PageHeader title="القرآن الكريم" subtitle="مكتبة شاملة" />
+      <StandardHeader
+        title="القرآن الكريم"
+        subtitle="مكتبة شاملة"
+        showBack
+        right={
+          <button
+            onClick={() => setNavOpen((v) => !v)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-primary hover:bg-primary/10 active:scale-95 transition-all border border-primary/30"
+            aria-label="قائمة القرآن"
+          >
+            <span>أقسام</span>
+            <ChevronDown size={12} className={`transition-transform ${navOpen ? "rotate-180" : ""}`} />
+          </button>
+        }
+      />
+
+      {/* Quran nav sheet */}
+      {navOpen && (
+        <div
+          className="mx-4 mb-2 mt-1 rounded-2xl border border-border/60 bg-card/95 backdrop-blur-md shadow-lg overflow-hidden"
+          style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}
+        >
+          <div className="grid grid-cols-3 gap-0 divide-x divide-y divide-border/40 rtl:divide-x-reverse">
+            {quranNavItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setNavOpen(false)}
+                className="flex flex-col items-center gap-1 px-2 py-3 text-center hover:bg-primary/5 active:bg-primary/10 transition-colors"
+              >
+                <span className="text-xl leading-none">{item.icon}</span>
+                <span className="text-[11px] font-bold text-foreground leading-tight">{item.label}</span>
+                <span className="text-[9px] text-muted-foreground leading-none">{item.sub}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="px-4 flex flex-col gap-6 pt-4">
         {/* Hero */}

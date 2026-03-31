@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ZakiyPanel } from "@/components/ZakiyPanel";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  CheckCircle2, Star, Trophy, Flame, ArrowRight,
+  CheckCircle2, Star, Trophy, Flame, ChevronRight,
 } from "lucide-react";
 import { Link } from "wouter";
 import { getSessionId } from "@/lib/session";
@@ -152,7 +152,7 @@ export default function Journey30() {
               href="/"
               className="w-10 h-10 rounded-xl hover:bg-muted/70 active:scale-95 transition-all text-muted-foreground flex items-center justify-center"
             >
-              <ArrowRight size={20} />
+              <ChevronRight size={22} />
             </Link>
             <div className="flex-1 text-center">
               <p className="font-bold text-sm">رحلة ٣٠ يوماً</p>
@@ -218,7 +218,7 @@ export default function Journey30() {
             href="/"
             className="w-10 h-10 rounded-xl hover:bg-muted/70 active:scale-95 transition-all text-muted-foreground flex items-center justify-center"
           >
-            <ArrowRight size={20} />
+            <ChevronRight size={22} />
           </Link>
           <div className="absolute inset-x-0 flex flex-col items-center pointer-events-none px-14">
             <p className="font-bold text-sm text-foreground">رحلة ٣٠ يوماً</p>

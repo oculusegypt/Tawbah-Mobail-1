@@ -1,0 +1,249 @@
+Implement a Dynamic Context-Aware Header System that adapts per screen while keeping a unified design language.
+
+========================
+CORE IDEA
+=========
+
+The header is NOT static.
+
+It must adapt based on:
+
+* Page type
+* User state (Zakiy)
+* Screen requirements
+
+BUT:
+
+* Keep consistent structure
+* Keep visual harmony
+* Avoid UI fragmentation
+
+========================
+HEADER TYPES (IMPORTANT)
+========================
+
+Create 3 main header variants:
+
+1. Hero Header (Main / Quran / Key Pages)
+2. Standard Header (Inner Pages)
+3. Context Header (AI / Special Pages like Zakiy)
+
+========================
+
+1. HERO HEADER (PRIMARY EXPERIENCE)
+   ========================
+
+Used in:
+
+* Home Page
+* Quran Page
+* Any major landing section
+
+Behavior:
+
+* Integrated with hero section (NOT separate bar)
+* Visually rich but clean
+* Smooth gradient or soft background
+
+Structure:
+
+[Top Row]
+
+* Left: Menu or Back
+* Right: Actions (max 3 icons)
+
+[Center Area]
+
+* Page Title (large)
+* Subtitle (small, contextual)
+
+[Bottom Area - optional]
+
+* Quick navigation / tabs / dropdown
+
+Right-side actions may include:
+
+* Notifications
+* Theme toggle
+* Language OR Zakiy access
+
+IMPORTANT:
+
+* Do NOT overcrowd (max 3 icons)
+* Maintain spacing and clarity
+
+========================
+2. STANDARD HEADER
+==================
+
+Used in:
+
+* Regular pages
+* Forms
+* Task pages
+
+Structure:
+
+[Left] Back Button
+[Center] Title
+[Right] Optional actions (1–2 max)
+
+Behavior:
+
+* Sticky (fixed on scroll)
+* Minimal height
+* Clean surface color (var(--surface))
+
+========================
+3. CONTEXT HEADER (ZAKIY / SMART PAGES)
+=======================================
+
+Used in:
+
+* Zakiy AI page
+* Any state-driven page
+
+Structure:
+
+[Left] Back
+[Center]
+
+* Title (e.g. "Zakiy")
+* Dynamic subtitle (state-based)
+
+[Right]
+
+* Tone selector (calm / strong / motivational)
+* Settings icon
+
+IMPORTANT:
+
+* Must react to Zakiy state
+* Must reflect emotional tone visually
+
+========================
+STATE INTEGRATION (CRITICAL)
+============================
+
+Header must respond to:
+
+[data-zakiy-state]
+
+States:
+
+* emergency → subtle red highlight
+* repentance → calm blue
+* growth → soft green
+
+Apply:
+
+* border accent
+* background tint
+* icon highlight
+
+DO NOT overdo colors.
+
+========================
+QURAN PAGE SPECIAL CASE
+=======================
+
+Quran page uses Hero Header BUT:
+
+* Includes:
+
+  * Back button
+  * Title: "القرآن الكريم"
+  * Subtitle (e.g. السورة / الجزء)
+
+* Add dropdown menu:
+
+  * Surah list
+  * Juz selection
+  * Bookmarks
+
+* Header blends into content (no hard separation)
+
+========================
+HOME PAGE HEADER (SPECIAL)
+==========================
+
+Hero Header with:
+
+Right icons:
+
+* Notifications
+* Theme toggle
+* Zakiy
+
+Center:
+
+* Title: رحلة العودة
+* Subtitle: phase / progress
+
+Must feel calm, spiritual, not busy.
+
+========================
+BEHAVIOR RULES
+==============
+
+1. Sticky:
+
+* Header stays visible
+
+2. Scroll Shrink:
+
+* Hero header becomes compact on scroll
+
+3. Smooth transitions:
+
+* No sudden jumps
+
+========================
+COMPONENT ARCHITECTURE
+======================
+
+Create:
+
+src/components/header/
+
+* Header.tsx (main wrapper)
+* HeroHeader.tsx
+* StandardHeader.tsx
+* ContextHeader.tsx
+
+Use props:
+
+type HeaderProps = {
+variant: 'hero' | 'standard' | 'context';
+title: string;
+subtitle?: string;
+showBack?: boolean;
+actions?: ReactNode;
+}
+
+========================
+DESIGN RULES
+============
+
+* Use design tokens ONLY (no hardcoded styles)
+* Use consistent spacing
+* Max 3 actions on right
+* Icons must be clear and minimal
+
+========================
+DO NOT
+======
+
+* Do NOT create totally different styles per page
+* Do NOT overload header with buttons
+* Do NOT break visual consistency
+
+========================
+FINAL GOAL
+==========
+
+* Smart adaptive header
+* Unified UX
+* Clean modern UI
+* Emotion-aware (Zakiy integrated)
+* No learning curve for user

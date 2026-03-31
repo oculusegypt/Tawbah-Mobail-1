@@ -1,5 +1,5 @@
 import { Fragment, useState, useEffect, useCallback } from "react";
-import { GripVertical, Settings2, Sparkles } from "lucide-react";
+import { GripVertical, Settings2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppUserProgress } from "@/hooks/use-app-data";
 import { useZakiyMode } from "@/context/ZakiyModeContext";
@@ -33,7 +33,7 @@ import {
 } from "./types";
 import type { SectionId, ListId } from "./types";
 import { SECTION_LABELS } from "./list-sections";
-import { HeroBellButton } from "./HeroBellButton";
+import { HomeHeroBar } from "./HomeHeroBar";
 import { SosReturnToast } from "./SosReturnToast";
 import { EidEntryCard } from "./EidEntryCard";
 import { DailyFocusCard } from "./DailyFocusCard";
@@ -113,38 +113,15 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Zakiy Mode Toggle */}
-      <div className="flex justify-center pt-3 pb-1 px-5" dir="rtl">
-        <button
-          onClick={toggleAiMode}
-          style={aiMode ? {
-            background: "color-mix(in srgb, var(--primary) 15%, transparent)",
-            borderColor: "color-mix(in srgb, var(--primary) 40%, transparent)",
-            color: "var(--primary)",
-          } : undefined}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all active:scale-95 border ${
-            aiMode
-              ? "border-transparent"
-              : "bg-muted/30 border-border/30 text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Sparkles
-            className="w-4 h-4"
-            style={aiMode ? { color: "var(--primary)" } : undefined}
-          />
-          {aiMode ? "وضع زكي مفعّل — اضغط للإيقاف" : "دع زكي يقودك"}
-        </button>
-      </div>
-
       {/* AI Mode replaces dashboard */}
       {aiMode ? (
         <ZakiyModeDashboard />
       ) : (
         <>
-          {/* Hero + bell overlay */}
+          {/* Hero + header overlay */}
           <div className="relative">
             <IslamicHero />
-            <HeroBellButton />
+            <HomeHeroBar />
           </div>
           <div className="px-5 relative z-10 flex flex-col gap-4 pl-[7px] pr-[7px] mt-[-88px]">
             {/* Quick Access Bar */}
