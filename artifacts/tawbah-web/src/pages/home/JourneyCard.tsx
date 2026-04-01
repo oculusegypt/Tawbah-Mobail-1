@@ -369,9 +369,7 @@ export function SectionJourneyCard() {
             className="text-[11px] leading-relaxed"
             style={{ color: "rgba(255,255,255,0.45)" }}
           >
-            {!hasCovenant
-              ? "التوبة ليست لحظة واحدة — هي رحلة تتغيّر فيها يوماً بيوم"
-              : "واصل — بقيت خطوات قليلة لبدء رحلتك"}
+            {"التوبة ليست لحظة واحدة — هي رحلة تتغيّر فيها يوماً بيوم"}
           </p>
         </div>
 
