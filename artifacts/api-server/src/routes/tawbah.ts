@@ -327,10 +327,15 @@ router.get("/user/journey", optionalAuth, async (req: AuthenticatedRequest, res)
   });
 });
 
-router.put("/user/sins", requireAuth, async (req: AuthenticatedRequest, res) => {
-  const userId = Number(req.auth!.sub);
-  const sessionId = `user_${userId}`;
-  const { sinIds } = req.body ?? {};
+router.put("/user/sins", optionalAuth, async (req: AuthenticatedRequest, res) => {
+  const { sinIds, sessionId: guestSessionId } = req.body ?? {};
+  const sessionId = req.auth?.sub
+    ? `user_${Number(req.auth.sub)}`
+    : (guestSessionId as string | undefined)?.trim() || null;
+
+  if (!sessionId) {
+    return res.status(400).json({ error: "sessionId required" });
+  }
 
   if (!Array.isArray(sinIds)) {
     return res.status(400).json({ error: "sinIds must be an array" });

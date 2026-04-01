@@ -11,6 +11,7 @@ import {
   type Sin, type SinCategory,
 } from "@/lib/sins-data";
 import { getAuthHeader } from "@/lib/auth-client";
+import { getSessionId } from "@/lib/session";
 
 type FilterType = "all" | SinCategory;
 
@@ -394,12 +395,13 @@ export default function SinsList() {
     setSaving(true);
     const sins = SINS.filter(s => selectedIds.has(s.id));
     try {
-      await fetch("/api/user/sins", {
+      const res = await fetch("/api/user/sins", {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json", ...getAuthHeader() },
-        body: JSON.stringify({ sinIds: sins.map(s => s.id) }),
+        body: JSON.stringify({ sinIds: sins.map(s => s.id), sessionId: getSessionId() }),
       });
+      if (!res.ok) throw new Error("save_failed");
       setSaved(true);
       setTimeout(() => {
         const returnPath = getReturnPath();

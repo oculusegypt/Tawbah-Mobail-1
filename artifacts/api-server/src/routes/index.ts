@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
+import authRouter from "./auth";
 import tawbahRouter from "./tawbah";
 import ttsRouter from "./tts";
 import zakiyRouter from "./zakiy";
@@ -17,6 +18,7 @@ const router: IRouter = Router();
 router.use(audioProxyRouter);
 router.use(quranRouter);
 router.use(healthRouter);
+router.use(authRouter);
 router.use(heroRouter);
 router.use(tawbahRouter);
 router.use(ttsRouter);
