@@ -15,7 +15,6 @@ import { getAuthHeader, setAuthToken } from "@/lib/auth-client";
 import { supabase } from "@/lib/supabase";
 import { JourneyData } from "./types";
 import { fetchWithTimeout, buildNativeFallbackJourney } from "./utils";
-import { CompletionBanner } from "./components/CompletionBanner";
 import { CompletionCard } from "./components/CompletionCard";
 import { JourneyTimeline } from "./components/JourneyTimeline";
 import { SinPanel } from "./components/SinPanel";
@@ -41,8 +40,6 @@ export default function Journey30() {
   const hasSin = journeyMeta?.hasSin ?? true;
   const [showRestoreCode, setShowRestoreCode] = useState(false);
   const [localAllDone, setLocalAllDone] = useState(false);
-  const [justCompleted, setJustCompleted] = useState<{ day: number; title: string } | null>(null);
-  const completingDayRef = useRef<{ day: number; title: string } | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, isError, refetch } = useQuery<JourneyData>({
@@ -89,11 +86,6 @@ export default function Journey30() {
       return res.json();
     },
     onSuccess: () => {
-      if (completingDayRef.current) {
-        setJustCompleted(completingDayRef.current);
-        completingDayRef.current = null;
-        setTimeout(() => setJustCompleted(null), 7000);
-      }
       setLocalAllDone(false);
       queryClient.invalidateQueries({ queryKey: ["journey30", sessionId] });
       setTimeout(() => {
@@ -142,7 +134,6 @@ export default function Journey30() {
 
   const handleCompleteDay = () => {
     if (!currentDay) return;
-    completingDayRef.current = { day: currentDay.day, title: currentDay.title };
     completeMutation.mutate(currentDay.day);
   };
 
@@ -263,18 +254,6 @@ export default function Journey30() {
             <ChevronRight size={16} className="text-primary/60 shrink-0" />
           </Link>
         )}
-
-        {/* ── Day completion celebration banner ─────────────────────────────── */}
-        <AnimatePresence>
-          {justCompleted && (
-            <CompletionBanner
-              dayTitle={justCompleted.title}
-              nextDayNum={nextDayNum}
-              onNavigateNext={handleCompleteDay}
-              isNavigating={completeMutation.isPending}
-            />
-          )}
-        </AnimatePresence>
 
         {/* ── Restore code panel ────────────────────────────────────────────── */}
         <AnimatePresence>
