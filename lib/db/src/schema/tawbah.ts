@@ -4,7 +4,9 @@ import { z } from "zod/v4";
 
 export const usersTable = pgTable("users", {
   id: serial("id").primaryKey(),
+  username: text("username").unique(),
   email: text("email").notNull().unique(),
+  phone: text("phone"),
   passwordHash: text("password_hash").notNull(),
   passwordSalt: text("password_salt").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -18,6 +20,7 @@ export const userProgressTable = pgTable("user_progress", {
   id: serial("id").primaryKey(),
   sessionId: text("session_id").notNull().unique(),
   sinCategory: text("sin_category").notNull().default("other"),
+  sinIds: text("sin_ids"),
   covenantSigned: boolean("covenant_signed").notNull().default(false),
   covenantDate: timestamp("covenant_date"),
   currentPhase: integer("current_phase").notNull().default(1),

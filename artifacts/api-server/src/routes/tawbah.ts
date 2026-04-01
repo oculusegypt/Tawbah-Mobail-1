@@ -4,6 +4,7 @@ import { speechToText, ensureCompatibleFormat } from "@workspace/integrations-op
 import { db } from "@workspace/db";
 import {
   userProgressTable,
+  usersTable,
   habitsTable,
   dhikrCountTable,
   kaffarahStepsTable,
@@ -23,6 +24,7 @@ import {
   CompleteHabitBody,
   IncrementDhikrBody,
 } from "@workspace/api-zod";
+import { requireAuth, optionalAuth, type AuthenticatedRequest } from "../lib/auth";
 
 const router: IRouter = Router();
 
@@ -290,6 +292,72 @@ router.post("/user/covenant", async (req, res) => {
   };
 
   res.json(formatted);
+});
+
+router.get("/user/journey", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const userId = Number(req.auth!.sub);
+  const [user] = await db
+    .select({ id: usersTable.id, email: usersTable.email })
+    .from(usersTable)
+    .where(eq(usersTable.id, userId));
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const sessionId = `user_${userId}`;
+  const progress = await db.query.userProgressTable.findFirst({
+    where: eq(userProgressTable.sessionId, sessionId),
+  });
+
+  if (!progress || !progress.covenantSigned) {
+    return res.json({ active: false, progress: 0, totalDays: 40, hasSin: false });
+  }
+
+  const hasSin = !!(progress.sinIds && progress.sinIds.trim() !== "[]");
+  const totalDays = 40;
+  const pct = Math.min(100, Math.round((progress.day40Progress / totalDays) * 100));
+
+  return res.json({
+    active: true,
+    progress: pct,
+    totalDays,
+    hasSin,
+    day: progress.day40Progress,
+  });
+});
+
+router.put("/user/sins", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const userId = Number(req.auth!.sub);
+  const sessionId = `user_${userId}`;
+  const { sinIds } = req.body ?? {};
+
+  if (!Array.isArray(sinIds)) {
+    return res.status(400).json({ error: "sinIds must be an array" });
+  }
+
+  const sinIdsJson = JSON.stringify(sinIds);
+
+  const existing = await db.query.userProgressTable.findFirst({
+    where: eq(userProgressTable.sessionId, sessionId),
+  });
+
+  if (existing) {
+    await db
+      .update(userProgressTable)
+      .set({ sinIds: sinIdsJson })
+      .where(eq(userProgressTable.sessionId, sessionId));
+  } else {
+    await db.insert(userProgressTable).values({
+      sessionId,
+      sinCategory: sinIds[0] ?? "other",
+      sinIds: sinIdsJson,
+      covenantSigned: false,
+      currentPhase: 1,
+      day40Progress: 0,
+      firstDayTasksCompleted: false,
+      streakDays: 0,
+    });
+  }
+
+  return res.json({ ok: true });
 });
 
 router.get("/habits", async (req, res) => {
