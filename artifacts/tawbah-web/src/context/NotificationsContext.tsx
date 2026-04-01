@@ -257,14 +257,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       if (document.visibilityState === "visible") reschedule();
     };
     document.addEventListener("visibilitychange", handleVisibility);
-<<<<<<< Updated upstream
-    return () =>
-      document.removeEventListener("visibilitychange", handleVisibility);
-  }, [supported, reschedule]);
-=======
     return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, [supported, native, reschedule]);
->>>>>>> Stashed changes
 
   // ── Listen for SW-fired notifications (push) → add to in-app inbox ───────────
   useEffect(() => {
@@ -344,30 +338,10 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           const fireKey = `${n.tag}_${new Date(n.fireAt).toISOString().slice(0, 16)}`;
           if (!hasFiredToday(fireKey)) {
             markFiredToday(fireKey);
-<<<<<<< Updated upstream
             if (native) {
               // Native: use LocalNotifications for real status-bar notification with sound
               let channelId = "reminder";
               let sound = "azan";
-
-              if (n.tag.startsWith("prayer-")) {
-                channelId = "prayer";
-                sound = "azan";
-              } else if (n.tag === "morning-adhkar") {
-                channelId = "adhkar";
-                sound = "azkar_sabah";
-              } else if (n.tag === "evening-adhkar") {
-                channelId = "adhkar";
-                sound = "azkar_masaa";
-              }
-              await showLocalNotifNow({
-                title: n.title,
-                body: n.body,
-                tag: n.tag,
-                channelId,
-                sound,
-                url: n.url ?? "/",
-              });
 
               if (n.tag.startsWith("prayer-")) {
                 channelId = "prayer";
@@ -403,11 +377,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
               icon: "bell",
               color: "#4A90B8",
             });
-=======
-            // Web: show via Service Worker
-            await showViaSW({ title: n.title, body: n.body, tag: n.tag, url: n.url ?? "/" });
-            void addToInboxApi({ type: "reminder", title: n.title, body: n.body, icon: "bell", color: "#4A90B8" });
->>>>>>> Stashed changes
           }
         }
       }
