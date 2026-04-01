@@ -207,26 +207,11 @@ function AiSinDetector({ onDetected }: { onDetected: (ids: string[], explanation
 }
 
 function SinDetailSheet({ sin, onClose }: { sin: Sin; onClose: () => void }) {
-  const [added, setAdded] = useState(() => {
-    try {
-      const saved = localStorage.getItem("selected_kaffarahs");
-      const arr: string[] = saved ? JSON.parse(saved) : [];
-      return sin.kaffarahId ? arr.includes(sin.kaffarahId) : false;
-    } catch { return false; }
-  });
-
+  const [added, setAdded] = useState(false);
   const meta = CATEGORY_META[sin.category];
 
   const handleAddKaffarah = () => {
     if (!sin.kaffarahId) return;
-    try {
-      const saved = localStorage.getItem("selected_kaffarahs");
-      const arr: string[] = saved ? JSON.parse(saved) : [];
-      if (!arr.includes(sin.kaffarahId)) {
-        arr.push(sin.kaffarahId);
-        localStorage.setItem("selected_kaffarahs", JSON.stringify(arr));
-      }
-    } catch {}
     setAdded(true);
   };
 
@@ -398,12 +383,23 @@ export default function SinsList() {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const sins = SINS.filter(s => selectedIds.has(s.id));
     saveSelectedSins(sins);
-    localStorage.removeItem("personal_plan_dismissed");
     setSaved(true);
-    setTimeout(() => setLocation("/journey"), 700);
+    try {
+      await fetch("/api/user/sins", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sinIds: sins.map(s => s.id) }),
+      });
+    } catch {}
+    setTimeout(() => setLocation("/covenant"), 500);
+  };
+
+  const handleSkip = () => {
+    setLocation("/covenant");
   };
 
   const handleAiDetected = (ids: string[], _explanation: string) => {
@@ -439,18 +435,22 @@ export default function SinsList() {
   return (
     <div className="flex flex-col flex-1 pb-32">
       <div className="flex items-center gap-3 px-5 pt-4 mb-1">
-        <Link href="/journey" className="p-2 -ml-2 rounded-xl hover:bg-muted/50 text-muted-foreground">
+        <button
+          onClick={() => window.history.length > 1 ? window.history.back() : setLocation("/")}
+          className="p-2 -ml-2 rounded-xl hover:bg-muted/50 text-muted-foreground"
+        >
           <ArrowLeft size={20} />
-        </Link>
+        </button>
         <div className="flex-1">
           <h1 className="text-xl font-display font-bold">قائمة الذنوب الذكية</h1>
           <p className="text-xs text-muted-foreground">اختر ذنبك لتُبنى خطتك عليه</p>
         </div>
-        {selectedIds.size > 0 && (
-          <span className="text-xs font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full border border-primary/20">
-            {selectedIds.size} مختار
-          </span>
-        )}
+        <button
+          onClick={handleSkip}
+          className="text-xs font-bold text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-xl border border-border hover:border-border/60 transition-colors"
+        >
+          تخطّ
+        </button>
       </div>
 
       <AiSinDetector onDetected={handleAiDetected} />
@@ -527,7 +527,7 @@ export default function SinsList() {
               ) : (
                 <>
                   <Save size={18} />
-                  احفظ وحدّث خطتي ({selectedIds.size} {selectedIds.size === 1 ? "ذنب" : "ذنوب"})
+                  احفظ وتابع إلى الميثاق ({selectedIds.size} {selectedIds.size === 1 ? "ذنب" : "ذنوب"})
                 </>
               )}
             </button>

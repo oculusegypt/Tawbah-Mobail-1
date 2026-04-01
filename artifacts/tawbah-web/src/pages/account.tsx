@@ -119,8 +119,6 @@ function getHijriDate() {
   }
 }
 
-const HERO_BG_KEY = "hero_custom_bg";
-
 export default function Account() {
   const { lang, theme, accentColor, autoPlayBotAudio, autoPlayQuran, quranReciterId,
     toggleLang, toggleTheme, setAccentColor, setAutoPlayBotAudio, setAutoPlayQuran, setQuranReciterId } = useSettings();
@@ -130,7 +128,7 @@ export default function Account() {
   const [reciterOpen, setReciterOpen] = useState(false);
   const currentReciter = QURAN_RECITERS.find(r => r.id === quranReciterId) ?? QURAN_RECITERS[0]!;
 
-  const [heroPreview, setHeroPreview] = useState<string | null>(() => localStorage.getItem(HERO_BG_KEY));
+  const [heroPreview, setHeroPreview] = useState<string | null>(null);
   const [heroUploading, setHeroUploading] = useState(false);
   const heroInputRef = useRef<HTMLInputElement>(null);
 
@@ -141,7 +139,6 @@ export default function Account() {
     const reader = new FileReader();
     reader.onloadend = () => {
       const dataUrl = reader.result as string;
-      localStorage.setItem(HERO_BG_KEY, dataUrl);
       setHeroPreview(dataUrl);
       setHeroUploading(false);
       window.dispatchEvent(new CustomEvent("hero-bg-changed", { detail: dataUrl }));
@@ -151,12 +148,11 @@ export default function Account() {
   };
 
   const resetHeroImage = () => {
-    localStorage.removeItem(HERO_BG_KEY);
     setHeroPreview(null);
     window.dispatchEvent(new CustomEvent("hero-bg-changed", { detail: null }));
   };
 
-  const [heroLightPreview, setHeroLightPreview] = useState<string | null>(() => localStorage.getItem("hero_custom_bg_light"));
+  const [heroLightPreview, setHeroLightPreview] = useState<string | null>(null);
   const [heroLightUploading, setHeroLightUploading] = useState(false);
   const heroLightInputRef = useRef<HTMLInputElement>(null);
 
@@ -167,7 +163,6 @@ export default function Account() {
     const reader = new FileReader();
     reader.onloadend = () => {
       const dataUrl = reader.result as string;
-      localStorage.setItem("hero_custom_bg_light", dataUrl);
       setHeroLightPreview(dataUrl);
       setHeroLightUploading(false);
       window.dispatchEvent(new CustomEvent("hero-bg-light-changed", { detail: dataUrl }));
@@ -177,7 +172,6 @@ export default function Account() {
   };
 
   const resetHeroLightImage = () => {
-    localStorage.removeItem("hero_custom_bg_light");
     setHeroLightPreview(null);
     window.dispatchEvent(new CustomEvent("hero-bg-light-changed", { detail: null }));
   };
@@ -216,7 +210,6 @@ export default function Account() {
           <div className="w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
             <User2 size={38} className="text-primary/60" />
           </div>
-
           <Link
             href="/zakiy"
             className="absolute -right-1 -bottom-1 w-9 h-9 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 flex items-center justify-center hover:brightness-110 transition-all"
@@ -225,20 +218,16 @@ export default function Account() {
           >
             <Bot size={16} strokeWidth={2.2} />
           </Link>
-
-          {user && (
-            <button
-              onClick={logout}
-              className="absolute -left-1 -bottom-1 w-9 h-9 rounded-full bg-card border border-border shadow-lg shadow-black/10 flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive/30 transition-colors"
-              title="تسجيل الخروج"
-              aria-label="تسجيل الخروج"
-            >
-              <LogOut size={16} strokeWidth={2.2} />
-            </button>
-          )}
         </div>
-        <h1 className="text-lg font-bold">حسابي</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">{getHijriDate()}</p>
+        {user ? (
+          <>
+            <h1 className="text-base font-black text-foreground" dir="ltr">@{user.username ?? user.email.split("@")[0]}</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p>
+          </>
+        ) : (
+          <h1 className="text-lg font-bold">حسابي</h1>
+        )}
+        <p className="text-[11px] text-muted-foreground mt-0.5">{getHijriDate()}</p>
       </motion.div>
 
       {/* Stats Summary */}
@@ -303,13 +292,13 @@ export default function Account() {
             </div>
           </div>
         )}
+        <LinkRow href="/prayer-times" icon={<Bell size={18} />} label="مواقيت الصلاة" description="تذكيرات قبل كل صلاة" iconBg="bg-indigo-500/10" iconColor="text-indigo-500" />
+        <LinkRow href="/notifications" icon={<Settings2 size={18} />} label="إعدادات الإشعارات" description="تخصيص وقت وأنواع التذكيرات" iconBg="bg-violet-500/10" iconColor="text-violet-500" />
         <LinkRow href="/progress" icon={<BarChart2 size={18} />} label="خريطة التقدم" description="إحصاءاتك الروحية والمسار اليومي" />
         <LinkRow href="/plan" icon={<CheckSquare size={18} />} label="عاداتي اليومية" description="تتبّع عاداتك الروحية ومكتبة العادات" iconBg="bg-emerald-500/10" iconColor="text-emerald-600" />
         <LinkRow href="/journey" icon={<Calendar size={18} />} label="رحلة التوبة ٣٠ يوماً" description="برنامج يومي تدريجي" />
         <LinkRow href="/journal" icon={<PenLine size={18} />} label="يوميات التوبة" description="مساحتك السرية الخاصة" iconBg="bg-violet-500/10" iconColor="text-violet-500" />
         <LinkRow href="/danger-times" icon={<Clock size={18} />} label="أوقات الخطر" description="تذكيرات وقائية ذكية" iconBg="bg-orange-500/10" iconColor="text-orange-500" />
-        <LinkRow href="/prayer-times" icon={<Bell size={18} />} label="مواقيت الصلاة" description="تذكيرات قبل كل صلاة" iconBg="bg-indigo-500/10" iconColor="text-indigo-500" />
-        <LinkRow href="/notifications" icon={<Settings2 size={18} />} label="إعدادات الإشعارات" description="تخصيص وقت وأنواع التذكيرات" iconBg="bg-violet-500/10" iconColor="text-violet-500" />
         <LinkRow href="/kaffarah" icon={<ScrollText size={18} />} label="الكفارات الشرعية" description="خطوات مفصّلة لكل ذنب" iconBg="bg-destructive/10" iconColor="text-destructive" />
       </motion.div>
 
@@ -321,6 +310,29 @@ export default function Account() {
         className="bg-card border border-border rounded-2xl px-4 mb-4"
       >
         <SectionLabel>الإعدادات</SectionLabel>
+
+        {/* Smart Activation — highlighted */}
+        <div className="py-3.5 border-b border-border/30 -mx-4 px-4 bg-primary/5 border-primary/15 mb-1 rounded-xl">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center text-primary flex-shrink-0 ring-2 ring-primary/30">
+                <Zap size={17} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-primary">التفعيل الذكي للإشعارات</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {notifSettings.enabled ? "الإشعارات مفعّلة" : "الإشعارات معطّلة"}
+                </p>
+              </div>
+            </div>
+            <div className="flex-shrink-0">
+              <Toggle
+                checked={notifSettings.enabled}
+                onToggle={() => updateNotifSettings({ enabled: !notifSettings.enabled })}
+              />
+            </div>
+          </div>
+        </div>
 
         <SettingRow
           icon={theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}

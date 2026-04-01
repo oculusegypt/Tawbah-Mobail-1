@@ -421,27 +421,14 @@ export const SIN_CATEGORY_ORDER: SinCategory[] = [
   "common",
 ];
 
+let _selectedSins: Sin[] = [];
+
 export function getSelectedSins(): Sin[] {
-  try {
-    const saved = localStorage.getItem("selected_sins");
-    const ids: string[] = saved ? JSON.parse(saved) : [];
-    return ids.map(id => SINS.find(s => s.id === id)).filter(Boolean) as Sin[];
-  } catch { return []; }
+  return _selectedSins;
 }
 
 export function saveSelectedSins(sins: Sin[]) {
-  try {
-    localStorage.setItem("selected_sins", JSON.stringify(sins.map(s => s.id)));
-    // Auto-populate kaffarah list from sins that have kaffarah
-    const kaffarahIds = sins.filter(s => s.kaffarahId).map(s => s.kaffarahId!);
-    if (kaffarahIds.length > 0) {
-      const existing: string[] = (() => {
-        try { return JSON.parse(localStorage.getItem("selected_kaffarahs") || "[]"); } catch { return []; }
-      })();
-      const merged = Array.from(new Set([...existing, ...kaffarahIds]));
-      localStorage.setItem("selected_kaffarahs", JSON.stringify(merged));
-    }
-  } catch {}
+  _selectedSins = sins;
 }
 
 export function getPrimaryApiCategory(sins: Sin[]): ApiSinCategory {

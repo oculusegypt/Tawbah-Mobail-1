@@ -1,16 +1,14 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import type { Session } from "@supabase/supabase-js";
-import { clearAuthToken, setAuthToken } from "@/lib/auth-client";
-import { supabase } from "@/lib/supabase";
+import { setSessionUserId } from "@/lib/session";
 
-type AuthUser = { id: string; email: string };
+type AuthUser = { id: string; username: string | null; email: string };
 
 type AuthContextValue = {
   user: AuthUser | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  login: (username: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string, phone?: string) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -20,91 +18,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const syncFromSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      const session = data.session;
-      if (!session) {
-        clearAuthToken();
-        setUser(null);
-        setIsLoading(false);
-        return;
-      }
-      setAuthToken(session.access_token);
-      setUser({ id: session.user.id, email: session.user.email ?? "" });
-      try {
-        localStorage.setItem("tawbah_session", `user_${session.user.id}`);
-        localStorage.setItem("tawbah_user_id", session.user.id);
-      } catch {}
-      setIsLoading(false);
-    };
-
-    syncFromSession();
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
-      if (!session) {
-        clearAuthToken();
-        setUser(null);
-        setIsLoading(false);
-        return;
-      }
-      setAuthToken(session.access_token);
-      setUser({ id: session.user.id, email: session.user.email ?? "" });
-      try {
-        localStorage.setItem("tawbah_session", `user_${session.user.id}`);
-        localStorage.setItem("tawbah_user_id", session.user.id);
-      } catch {}
-      setIsLoading(false);
-    });
-
-    return () => {
-      sub.subscription.unsubscribe();
-    };
+    fetch("/api/auth/me", { credentials: "include" })
+      .then(async (res) => {
+        if (!res.ok) { setUser(null); return; }
+        const data = await res.json();
+        const u = data.user;
+        setUser({ id: String(u.id), username: u.username ?? null, email: u.email ?? "" });
+        setSessionUserId(String(u.id));
+      })
+      .catch(() => setUser(null))
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const linkSessionToUser = (userId: string) => {
-    try {
-      const prev = localStorage.getItem("tawbah_session");
-      if (!prev || prev === "guest" || !prev.startsWith("user_")) {
-        localStorage.setItem("tawbah_session", `user_${userId}`);
-      }
-      localStorage.setItem("tawbah_user_id", userId);
-    } catch {}
-  };
-
-  const login = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error || !data.session) throw new Error("login_failed");
-    setAuthToken(data.session.access_token);
-    setUser({ id: data.session.user.id, email: data.session.user.email ?? email });
-    linkSessionToUser(data.session.user.id);
-  };
-
-  const register = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) throw new Error("register_failed");
-    const session = data.session;
-    if (session) {
-      setAuthToken(session.access_token);
-      setUser({ id: session.user.id, email: session.user.email ?? email });
-      linkSessionToUser(session.user.id);
-    } else {
-      clearAuthToken();
-      setUser(null);
+  const login = async (username: string, password: string) => {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error ?? "login_failed");
     }
+    const data = await res.json();
+    const u = data.user;
+    setUser({ id: String(u.id), username: u.username ?? null, email: u.email ?? "" });
+    setSessionUserId(String(u.id));
   };
 
-  const logout = () => {
-    supabase.auth.signOut();
-    clearAuthToken();
-    try {
-      localStorage.removeItem("tawbah_user_id");
-      const guestId = `guest_${Date.now()}`;
-      localStorage.setItem("tawbah_session", guestId);
-    } catch {}
+  const register = async (username: string, email: string, password: string, phone?: string) => {
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password, phone }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error ?? "register_failed");
+    }
+    const data = await res.json();
+    const u = data.user;
+    setUser({ id: String(u.id), username: u.username ?? null, email: u.email ?? "" });
+    setSessionUserId(String(u.id));
+  };
+
+  const logout = async () => {
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
     setUser(null);
+    setSessionUserId(null);
   };
 
-  const value = useMemo<AuthContextValue>(() => ({ user, isLoading, login, register, logout }), [user, isLoading]);
+  const value = useMemo<AuthContextValue>(
+    () => ({ user, isLoading, login, register, logout }),
+    [user, isLoading]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
