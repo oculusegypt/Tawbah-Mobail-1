@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useLocation, useSearch } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import {
   ArrowLeft, AlertTriangle, CheckCircle2,
   BookOpen, Scale, Info, Plus, Check, X, Save,
